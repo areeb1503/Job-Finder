@@ -1,19 +1,24 @@
-import express from "express"
-import dotenv from "dotenv"
-import cookieParser from "cookie-parser";
+import express from "express";
+import dotenv from "dotenv";
+import { app } from "./app.js";
+
 import dbConnect from "./db/dbConnect.js";
 
 dotenv.config();
 
-const app = express();
 
+dbConnect()
+.then(()=>{
+    app.listen(process.env.PORT || 5000,()=>{
+        console.log(`Server is running at port : ${process.env.PORT}`);
+    })
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true })); // to parse form data(urlencoded)
-app.use(cookieParser());
-
-
-app.listen(process.env.PORT||8000,()=>{
-    console.log(`Server is running on port ${process.env.PORT || 8000}`);
-    dbConnect(); // Connect to MongoDB database
+    app.on("error",(err)=>{
+        console.log("ERR",err); //When our app is not able to talk to the server although it is created.
+        throw err;
+    })
 })
+.catch((err)=>{
+    console.log("MONGO db connection failed !!",err);
+})
+

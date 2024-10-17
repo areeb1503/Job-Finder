@@ -18,7 +18,7 @@ function About() {
         <img
           src="https://tailus.io/sources/blocks/left-image/preview/images/startup.png"
           alt="Kaam platform"
-          className="w-full lg:w-1/2 lg:mx-auto lg:mb-8 lg:mt-0 sm:order-1 mb-8 lg:mb-0 sm:mr-8 lg:mr-0" // Responsive image placement
+          className="w-full lg:w-1/2 lg:mx-auto lg:mb-8 lg:mt-0 sm:order-1 mb-8 sm:mr-8 lg:mr-0" // Responsive image placement
         />
 
         <div className="relative z-10 max-w-screen-xl px-4 pb-20 pt-10 sm:py-24 mx-auto sm:px-6 lg:px-8 text-left lg:text-center"> 
@@ -35,11 +35,11 @@ function About() {
             <li><strong>Intelligent Skill Matching:</strong> Our platform extracts key skills from your resume and matches them with relevant job listings, streamlining your search for the perfect position.</li>
             <li><strong>AI-Powered Assistance:</strong> To help you stand out, our built-in AI chatbot generates personalized cover letters tailored to specific job applications, ensuring your application is not just another generic submission.</li>
             <li><strong>Comprehensive Employer Tools:</strong> Employers can easily post, edit, and manage job listings while benefiting from a targeted talent pool of candidates whose skills align with their needs.</li>
-            <li><strong>Feedback and Continuous Improvement:</strong> Your experience matters to us. That’s why we have a dedicated Feedback Page where you can share your suggestions, helping us continuously improve the platform for all users.</li>
+            <li><strong>Feedback and Continuous Improvement:</strong> Your experience matters to us. Thats why we have a dedicated Feedback Page where you can share your suggestions, helping us continuously improve the platform for all users.</li>
           </ul>
 
           <p className="mt-6 mb-8">
-            At <strong>Kaam</strong>, we aim to make the job search process more efficient, personalized, and less stressful. Whether you’re seeking your dream job or the perfect candidate, our platform is here to help you every step of the way. Join us today and take your job search or recruitment efforts to the next level!
+            At <strong>Kaam</strong>, we aim to make the job search process more efficient, personalized, and less stressful. Whether youre seeking your dream job or the perfect candidate, our platform is here to help you every step of the way. Join us today and take your job search or recruitment efforts to the next level!
           </p>
         </div>
       </animated.div>

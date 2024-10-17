@@ -5,10 +5,12 @@ import Home from './Components/LandingPage/Home';
 import About from './Components/LandingPage/About';
 import Login from './Components/Auth/Login';
 import SignUp from './Components/Auth/SignUp';
+import ScrollToTop from './Components/Utils/ScrollToTop';
 
 function App() {
   return (
     <Router>
+      <ScrollToTop />
       <Routes>
         {/*If user is not logged in we make available the landing page below, else we make available the Login page 
         (TODO : use conditional rendering to handle this case)*/}

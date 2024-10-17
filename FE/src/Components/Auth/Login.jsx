@@ -16,19 +16,17 @@ const Login = () => {
   };
 
   const handleChange = (e) => {
-    const { name, value, files } = e.target; // Destructuring name, value and files from e.target
-    if (name === 'resume' || name === 'profilePhoto') {
-      setFormData({ ...formData, [name]: files[0], [`${name}OriginalName`]: files[0].name });
-    } else {
-      setFormData({ ...formData, [name]: value });
-    }
+    const { name, value } = e.target; // Destructuring name, value and files from e.target
+    setFormData({ ...formData, [name]: value });
   };
+
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
       <form onSubmit={handleSubmit} className="bg-white m-4 p-6 rounded-lg shadow-lg w-full max-w-md">
         <h2 className="text-2xl font-bold text-center mb-4 text-orange-700">Log In</h2>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="flex flex-col gap-4 ">
           <div>
             <label className="block text-gray-700 font-semibold mb-1">Email</label>
             <input

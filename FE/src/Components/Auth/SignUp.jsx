@@ -18,13 +18,16 @@ const SignUp = () => {
         profilePhotoOriginalName: ''
     });
 
+    const [role, setRole] = useState(true)
+
     const [showPassword, setShowPassword] = useState(false); // State to manage password visibility
 
     const handleChange = (e) => {
         const { name, value, files } = e.target; // Destructuring name, value and files from e.target
         if (name === 'resume' || name === 'profilePhoto') {
             setFormData({ ...formData, [name]: files[0], [`${name}OriginalName`]: files[0].name });
-        } else {
+        }
+        else {
             setFormData({ ...formData, [name]: value });
         }
     };
@@ -131,7 +134,6 @@ const SignUp = () => {
                             className="border border-gray-300 px-4 py-2 rounded-md w-full focus:border-orange-700 focus:ring-1 focus:ring-orange-700"
                         ></textarea>
                     </div>
-
                     <div>
                         <label className="block text-gray-700 font-semibold mb-1">Resume</label>
                         <Upload

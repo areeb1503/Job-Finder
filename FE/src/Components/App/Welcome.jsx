@@ -10,8 +10,7 @@ function Welcome() {
                     </h1>
                     <p className="text-gray-700 text-lg">
                         Your one-stop platform for finding jobs and building resumes.
-                    </p>
-            
+                    </p>            
                 </div>
             </div>
         </div>

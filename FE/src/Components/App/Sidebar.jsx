@@ -5,13 +5,17 @@ import logo from '../../assets/briefcase.png';
 const Sidebar = () => {
   return (
     <aside className="fixed top-0 left-0 h-screen w-64 shadow-lg z-50 bg-white border-r border-gray-200">
-      <div className="flex flex-col items-center py-6">
-        <Link to="/" className="flex flex-col items-center">
-          <img src={logo} className="h-12 mb-2" alt="Logo" />
-          <p className='text-orange-700 font-extrabold'>KAAM</p>
-        </Link>
-        <nav className="mt-8 w-full">
-          <ul className="flex flex-col font-medium space-y-4 w-full">
+      <div className="flex flex-col h-full py-6">
+        <div className="flex flex-col items-center">
+          <Link to="/" className="flex flex-col items-center">
+            <img src={logo} className="h-12 mb-2" alt="Logo" />
+            <p className="text-orange-700 font-extrabold">KAAM</p>
+          </Link>
+        </div>
+
+        <nav className="mt-5 flex flex-col justify-between flex-grow w-full">
+          {/* Top Links */}
+          <ul className="flex flex-col font-medium space-y-4 ">
             <li>
               <NavLink
                 to="/app/jobs"
@@ -34,6 +38,10 @@ const Sidebar = () => {
                 Resume
               </NavLink>
             </li>
+          </ul>
+
+          {/* Bottom Links */}
+          <ul className="flex flex-col font-medium space-y-4 mt-auto">
             <li>
               <NavLink
                 to="/app/feedback"
@@ -60,8 +68,8 @@ const Sidebar = () => {
         </nav>
       </div>
     </aside>
-
   );
+
 };
 
 export default Sidebar;

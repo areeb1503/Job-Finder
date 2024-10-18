@@ -6,16 +6,16 @@ const Sidebar = () => {
   return (
     <aside className="fixed top-0 left-0 h-screen w-64 shadow-lg z-50 bg-white border-r border-gray-200">
       <div className="flex flex-col h-full py-6">
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col items-center mb-6">
           <Link to="/" className="flex flex-col items-center">
             <img src={logo} className="h-12 mb-2" alt="Logo" />
             <p className="text-orange-700 font-extrabold">KAAM</p>
           </Link>
         </div>
 
-        <nav className="mt-5 flex flex-col justify-between flex-grow w-full">
+        <nav className="flex-grow flex flex-col justify-between">
           {/* Top Links */}
-          <ul className="flex flex-col font-medium space-y-4 ">
+          <ul className="flex flex-col font-medium space-y-4">
             <li>
               <NavLink
                 to="/app/jobs"
@@ -69,7 +69,8 @@ const Sidebar = () => {
       </div>
     </aside>
   );
-
 };
+
+
 
 export default Sidebar;

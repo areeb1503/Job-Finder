@@ -3,14 +3,13 @@ import { Upload, Button } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
 import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons'; 
-
 const SignUp = () => {
     const [formData, setFormData] = useState({
         fullname: '',
         email: '',
         phoneNumber: '',
         password: '',
-        role: 'student',
+        role: 'recruiter', // Default role is recruiter.
         bio: '',
         resume: null,
         resumeOriginalName: '',
@@ -18,16 +17,13 @@ const SignUp = () => {
         profilePhotoOriginalName: ''
     });
 
-    const [role, setRole] = useState(true)
-
     const [showPassword, setShowPassword] = useState(false); // State to manage password visibility
 
     const handleChange = (e) => {
         const { name, value, files } = e.target; // Destructuring name, value and files from e.target
         if (name === 'resume' || name === 'profilePhoto') {
             setFormData({ ...formData, [name]: files[0], [`${name}OriginalName`]: files[0].name });
-        }
-        else {
+        } else {
             setFormData({ ...formData, [name]: value });
         }
     };
@@ -119,12 +115,13 @@ const SignUp = () => {
                             required
                             className="border border-gray-300 px-4 py-2 rounded-md w-full focus:border-orange-700 focus:ring-1 focus:ring-orange-700"
                         >
-                            <option value="student">Student</option>
+                            <option value="student">Job Seeker</option>
                             <option value="recruiter">Recruiter</option>
                         </select>
                     </div>
 
-                    <div className="col-span-1 sm:col-span-2">
+                    {formData.role === 'student' && (
+                        <div className="col-span-1 sm:col-span-2">
                         <label className="block text-gray-700 font-semibold mb-1">Bio</label>
                         <textarea
                             name="bio"
@@ -134,18 +131,24 @@ const SignUp = () => {
                             className="border border-gray-300 px-4 py-2 rounded-md w-full focus:border-orange-700 focus:ring-1 focus:ring-orange-700"
                         ></textarea>
                     </div>
-                    <div>
-                        <label className="block text-gray-700 font-semibold mb-1">Resume</label>
-                        <Upload
-                            accept=".pdf"
-                            beforeUpload={(file) => handleUpload('resume', file)}
-                            showUploadList={true}
-                        >
-                            <Button icon={<UploadOutlined />} className="border border-orange-700 text-orange-700 w-full">
-                                Upload Resume
-                            </Button>
-                        </Upload>
-                    </div>
+                    )}
+
+                    {/* Conditionally render the resume upload field */}
+                    {formData.role === 'student' && (
+                        <div>
+                            <label className="block text-gray-700 font-semibold mb-1">Resume</label>
+                            <Upload
+                                accept=".pdf"
+                                beforeUpload={(file) => handleUpload('resume', file)}
+                                showUploadList={true}
+                                required
+                            >
+                                <Button icon={<UploadOutlined />} className="border border-orange-700 text-orange-700 w-full">
+                                    Upload Resume
+                                </Button>
+                            </Upload>
+                        </div>
+                    )}
 
                     <div>
                         <label className="block text-gray-700 font-semibold mb-1">Profile Photo</label>

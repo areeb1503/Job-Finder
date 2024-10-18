@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { Upload, Button } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
-import { Link } from 'react-router-dom';
+import { Link,useNavigate } from 'react-router-dom';
 import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons'; 
 const SignUp = () => {
+
+    const navigate = useNavigate();
+
     const [formData, setFormData] = useState({
         fullname: '',
         email: '',
@@ -36,7 +39,9 @@ const SignUp = () => {
     const handleSubmit = (e) => {
         e.preventDefault();
         // Send data to backend
-        console.log(formData);
+        // console.log(formData);
+        navigate('/app/');
+
     };
 
     return (

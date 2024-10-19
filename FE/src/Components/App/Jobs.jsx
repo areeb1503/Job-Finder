@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { FileTextOutlined, HeartOutlined, CheckCircleOutlined, SendOutlined, RobotOutlined } from '@ant-design/icons';
+import { ReactTyped } from "react-typed";
 
 function Jobs() {
   return (
@@ -58,7 +59,7 @@ function Jobs() {
         <div className="flex items-center space-x-2 p-2 border-b border-gray-300 pb-4">
           <RobotOutlined className="text-orange-700 text-2xl" />
           <span className="text-gray-700 text-lg font-semibold hover:text-orange-700 transition-colors">
-            Ask KaamBot
+            Ask Kaam AI
           </span>
         </div>
 
@@ -69,7 +70,17 @@ function Jobs() {
           <div className="flex-grow">
             {/* Dynamically populated chat messages would go here */}
           </div>
-          <p className="text-center mb-2 text-gray-600">What can I help you with?</p>
+          <p className="text-center mb-2 text-gray-600">
+            {" "}
+            <ReactTyped
+              strings={["What can I help you with?"]}
+              typeSpeed={100}
+              loop
+              backSpeed={20}
+              cursorChar="|"
+              showCursor={true}
+            />
+          </p>
         </div>
 
 

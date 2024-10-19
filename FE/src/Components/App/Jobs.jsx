@@ -2,7 +2,6 @@ import React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { FileTextOutlined, HeartOutlined, CheckCircleOutlined, SendOutlined, RobotOutlined } from '@ant-design/icons';
 
-
 function Jobs() {
   return (
     <div className="grid grid-rows-[auto_1fr] grid-cols-1 md:grid-cols-3 h-screen gap-2 p-0 overflow-hidden">
@@ -64,10 +63,15 @@ function Jobs() {
         </div>
 
         {/* Chat Messages Section */}
-        <div className="flex-grow overflow-y-auto p-4 border border-gray-300 rounded-lg bg-gray-50 h-64 shadow-inner">
+        <div className="flex-grow overflow-y-auto p-4 border border-gray-300 rounded-lg bg-gray-50 h-64 shadow-inner flex flex-col justify-between">
           {/* Chat Messages */}
           {/* This section can be populated dynamically with chat content */}
+          <div className="flex-grow">
+            {/* Dynamically populated chat messages would go here */}
+          </div>
+          <p className="text-center mb-2 text-gray-600">What can I help you with?</p>
         </div>
+
 
         {/* Input Section */}
         <div className="flex items-center space-x-2 mt-4">

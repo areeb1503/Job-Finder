@@ -3,6 +3,7 @@ import { NavLink, Outlet } from 'react-router-dom';
 import { FileTextOutlined, HeartOutlined, CheckCircleOutlined, SendOutlined, RobotOutlined } from '@ant-design/icons';
 import { ReactTyped } from "react-typed";
 
+
 function Jobs() {
   return (
     <div className="grid grid-rows-[auto_1fr] grid-cols-1 md:grid-cols-3 h-screen gap-2 p-0 overflow-hidden">
@@ -13,7 +14,7 @@ function Jobs() {
           <ul className="flex gap-5 md:gap-10 flex-wrap">
             <li>
               <NavLink
-                to="/app/recommended"
+                to="/app/jobs/"
                 className={({ isActive }) =>
                   `flex items-center px-4 py-2 rounded-lg ${isActive ? 'text-orange-700' : 'text-gray-700'} hover:text-orange-700 hover:bg-gray-100 duration-200`
                 }
@@ -24,7 +25,7 @@ function Jobs() {
             </li>
             <li>
               <NavLink
-                to="/app/liked"
+                to="/app/jobs/liked"
                 className={({ isActive }) =>
                   `flex items-center px-4 py-2 rounded-lg ${isActive ? 'text-orange-700' : 'text-gray-700'} hover:text-orange-700 hover:bg-gray-100 duration-200`
                 }
@@ -33,7 +34,7 @@ function Jobs() {
                 Liked
               </NavLink>
             </li>
-            <li>
+            {/* <li>
               <NavLink
                 to="/app/applied"
                 className={({ isActive }) =>
@@ -43,7 +44,7 @@ function Jobs() {
                 <CheckCircleOutlined className="mr-2" />
                 Applied
               </NavLink>
-            </li>
+            </li> */}
           </ul>
         </nav>
 
@@ -105,3 +106,4 @@ function Jobs() {
 
 
 export default Jobs
+

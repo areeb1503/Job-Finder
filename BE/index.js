@@ -22,3 +22,8 @@ dbConnect()
     console.log("MONGO db connection failed !!",err);
 })
 
+/*
+Adzuna API
+app_id = 0762915d
+app_key = b3b9936d09cbbc520878cec91b8b98ff
+*/

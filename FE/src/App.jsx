@@ -12,6 +12,8 @@ import Resume from './Components/App/Resume';
 import Feedback from './Components/App/Feedback';
 import Settings from './Components/App/Settings';
 import Welcome from './Components/App/Welcome';
+import Recommend from './Components/App/JobPages/Recommend';
+import Liked from './Components/App/JobPages/Liked';
 
 function App() {
   return (
@@ -28,7 +30,10 @@ function App() {
         <Route path='/signup' element={<SignUp />} />
         <Route path='/app/' element={<AppPage />}>{/*Page with outlet for nested routes below*/}
           <Route path='' element={<Welcome/>}/>
-          <Route path='jobs' element={<Jobs/>} />
+          <Route path='jobs/' element={<Jobs/>}>
+            <Route path ='' element={<Recommend/>}/>
+            <Route path = 'liked' element={<Liked/>}/>
+          </Route>
           <Route path='resume' element={<Resume/>}/>
           <Route path='feedback' element={<Feedback/>}/>
           <Route path='settings' element={<Settings/>}/>

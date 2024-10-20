@@ -135,6 +135,7 @@ function Recommend() {
     return (
         <div className="flex flex-col items-center justify-start gap-6 p-4 w-full h-full overflow-auto">
             {/* Search Input */}
+            <h1 className='text-2xl text-gray-700'>Recommended from Resume</h1>
             <div className="w-full max-w-md mb-6">
                 <Input
                     placeholder="Search by job title"

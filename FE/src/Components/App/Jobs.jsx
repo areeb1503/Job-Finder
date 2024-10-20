@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { FileTextOutlined, HeartOutlined, CheckCircleOutlined, SendOutlined, RobotOutlined } from '@ant-design/icons';
 import { ReactTyped } from "react-typed";
-import axios from "axios";
 
 const ChatBot = () => {
   const [messages, setMessages] = useState([]);

@@ -33,6 +33,13 @@ const userSchema= new Schema({
             default:""
         }
     },
+    likedJobs: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Job",
+            default: [],
+        },
+    ],
     
 },{timestamps:true})
 export const User=mongoose.model('User',userSchema)

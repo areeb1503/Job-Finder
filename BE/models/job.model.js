@@ -44,6 +44,12 @@ const jobSchema=new Schema({
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Application',
         }
-    ]
+    ],
+    likes: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+        },
+    ],
 },{timestamps:true})
 export const Job=mongoose.Schema('Job',jobSchema)

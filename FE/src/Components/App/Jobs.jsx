@@ -40,8 +40,8 @@ const ChatBot = () => {
     setInput(e.target.value);
   };
 
-  const handleKeyDown =(e) =>{
-    if (e.key === "Enter"){
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
       handleSendMessage();
     }
   }
@@ -63,7 +63,7 @@ const ChatBot = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-100">
+    <div className="flex flex-col h-full bg-gray-100">
       {/* Header */}
       <div className="bg-white p-4 shadow-lg flex items-center space-x-2 border-b border-gray-300">
         <RobotOutlined className="text-orange-700 text-3xl" />
@@ -73,9 +73,9 @@ const ChatBot = () => {
       </div>
 
       {/* Chat Messages Section */}
-      <div className="flex-grow flex flex-col justify-between max-w-screen-lg mx-auto w-full p-4">
-        <div className="flex-grow overflow-y-auto p-4 border border-gray-300 rounded-lg bg-gray-50 shadow-inner">
-          <div className="flex-grow">
+      <div className="flex-grow p-4">
+        <div className="h-[500px] overflow-y-auto p-4 border border-gray-300 rounded-lg bg-gray-50 shadow-inner">
+          <div className="flex-grow overflow-y-auto h">
             {/* Render chat messages */}
             {messages.map((msg, index) => (
               <div key={index} className={`mb-2 ${msg.sender === "user" ? "text-right" : "text-left"}`}>
@@ -84,53 +84,53 @@ const ChatBot = () => {
                 </p>
               </div>
             ))}
+
+            {/* Placeholder typing animation when no messages */}
+            {messages.length === 0 && (
+              <p className="text-center mb-2 text-gray-600">
+                <ReactTyped
+                  strings={["What can I help you with?"]}
+                  typeSpeed={100}
+                  loop
+                  backSpeed={20}
+                  cursorChar="|"
+                  showCursor={true}
+                />
+              </p>
+            )}
+
+            {/* Show typing animation when waiting for a response */}
+            {isTyping && (
+              <div className="text-center mb-2 text-gray-600">
+                <ReactTyped
+                  strings={["Kaam AI is typing..."]}
+                  typeSpeed={50}
+                  loop={false}
+                  cursorChar="|"
+                  showCursor={true}
+                />
+              </div>
+            )}
           </div>
-
-          {/* Placeholder typing animation when no messages */}
-          {messages.length === 0 && (
-            <p className="text-center mb-2 text-gray-600">
-              <ReactTyped
-                strings={["What can I help you with?"]}
-                typeSpeed={100}
-                loop
-                backSpeed={20}
-                cursorChar="|"
-                showCursor={true}
-              />
-            </p>
-          )}
-
-          {/* Show typing animation when waiting for a response */}
-          {isTyping && (
-            <div className="text-center mb-2 text-gray-600">
-              <ReactTyped
-                strings={["Kaam AI is typing..."]}
-                typeSpeed={50}
-                loop={false}
-                cursorChar="|"
-                showCursor={true}
-              />
-            </div>
-          )}
         </div>
+      </div>
 
-        {/* Input Section */}
-        <div className="flex items-center space-x-2 mt-4">
-          <input
-            type="text"
-            placeholder="Type a message..."
-            value={input}
-            onChange={handleInputChange}
-            onKeyDown={handleKeyDown}
-            className="flex-grow rounded-full p-3 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-700 transition-shadow"
-          />
-          <button
-            className="bg-orange-700 text-white rounded-full p-3 hover:bg-orange-600 transition-colors"
-            onClick={handleSendMessage} 
-          >
-            <SendOutlined />
-          </button>
-        </div>
+      {/* Input Section */}
+      <div className="flex items-center space-x-2 mt-4">
+        <input
+          type="text"
+          placeholder="Type a message..."
+          value={input}
+          onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
+          className="flex-grow rounded-full p-3 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-700 transition-shadow"
+        />
+        <button
+          className="bg-orange-700 text-white rounded-full p-3 hover:bg-orange-600 transition-colors"
+          onClick={handleSendMessage}
+        >
+          <SendOutlined />
+        </button>
       </div>
     </div>
   );

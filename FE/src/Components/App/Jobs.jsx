@@ -40,6 +40,12 @@ const ChatBot = () => {
     setInput(e.target.value);
   };
 
+  const handleKeyDown =(e) =>{
+    if (e.key === "Enter"){
+      handleSendMessage();
+    }
+  }
+
   // Function to send the input to Gemini API and get a response
   const sendToGeminiAPI = async (prompt) => {
     try {
@@ -115,11 +121,12 @@ const ChatBot = () => {
             placeholder="Type a message..."
             value={input}
             onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
             className="flex-grow rounded-full p-3 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-700 transition-shadow"
           />
           <button
             className="bg-orange-700 text-white rounded-full p-3 hover:bg-orange-600 transition-colors"
-            onClick={handleSendMessage}
+            onClick={handleSendMessage} 
           >
             <SendOutlined />
           </button>

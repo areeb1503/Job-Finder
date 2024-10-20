@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 
 const Login = () => {
+
+  const navigate = useNavigate()
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -12,7 +14,8 @@ const Login = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     // Send data to backend
-    console.log(formData);
+    // console.log(formData);
+    navigate('/app/');
   };
 
   const handleChange = (e) => {

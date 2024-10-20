@@ -1,7 +1,134 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { FileTextOutlined, HeartOutlined, CheckCircleOutlined, SendOutlined, RobotOutlined } from '@ant-design/icons';
 import { ReactTyped } from "react-typed";
+import axios from "axios";
+
+const ChatBot = () => {
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+
+  // Function to handle sending a message
+  const handleSendMessage = async () => {
+    if (!input.trim()) return;
+
+    // Add user message to the chat
+    const newMessages = [...messages, { sender: "user", text: input }];
+    setMessages(newMessages);
+
+    // Clear input field
+    setInput("");
+
+    // Set typing state to true
+    setIsTyping(true);
+
+    // Send the message to Gemini API
+    try {
+      const response = await sendToGeminiAPI(input);
+      setMessages([...newMessages, { sender: "bot", text: response }]);
+    } catch (error) {
+      // In case of an error, append an error message
+      setMessages([...newMessages, { sender: "bot", text: "Sorry, I couldn't process that." }]);
+    }
+
+    // Set typing state to false after response is received
+    setIsTyping(false);
+  };
+
+  // Function to handle input change
+  const handleInputChange = (e) => {
+    setInput(e.target.value);
+  };
+
+  // Function to send the input to Gemini API and get a response
+  const sendToGeminiAPI = async (prompt) => {
+    try {
+      const response = await fetch("http://localhost:5000/gemini-api", { // Update this to API link
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt }),
+      });
+      const data = await response.json();
+      return data.reply;
+    } catch (error) {
+      console.error("Error with Gemini API:", error);
+      throw new Error("API failed");
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col bg-gray-100">
+      {/* Header */}
+      <div className="bg-white p-4 shadow-lg flex items-center space-x-2 border-b border-gray-300">
+        <RobotOutlined className="text-orange-700 text-3xl" />
+        <span className="text-gray-700 text-2xl font-semibold hover:text-orange-700 transition-colors">
+          Ask Kaam AI
+        </span>
+      </div>
+
+      {/* Chat Messages Section */}
+      <div className="flex-grow flex flex-col justify-between max-w-screen-lg mx-auto w-full p-4">
+        <div className="flex-grow overflow-y-auto p-4 border border-gray-300 rounded-lg bg-gray-50 shadow-inner">
+          <div className="flex-grow">
+            {/* Render chat messages */}
+            {messages.map((msg, index) => (
+              <div key={index} className={`mb-2 ${msg.sender === "user" ? "text-right" : "text-left"}`}>
+                <p className={`inline-block p-2 rounded-lg ${msg.sender === "user" ? "bg-orange-700 text-white" : "bg-gray-200 text-black"}`}>
+                  {msg.text}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {/* Placeholder typing animation when no messages */}
+          {messages.length === 0 && (
+            <p className="text-center mb-2 text-gray-600">
+              <ReactTyped
+                strings={["What can I help you with?"]}
+                typeSpeed={100}
+                loop
+                backSpeed={20}
+                cursorChar="|"
+                showCursor={true}
+              />
+            </p>
+          )}
+
+          {/* Show typing animation when waiting for a response */}
+          {isTyping && (
+            <div className="text-center mb-2 text-gray-600">
+              <ReactTyped
+                strings={["Kaam AI is typing..."]}
+                typeSpeed={50}
+                loop={false}
+                cursorChar="|"
+                showCursor={true}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Input Section */}
+        <div className="flex items-center space-x-2 mt-4">
+          <input
+            type="text"
+            placeholder="Type a message..."
+            value={input}
+            onChange={handleInputChange}
+            className="flex-grow rounded-full p-3 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-700 transition-shadow"
+          />
+          <button
+            className="bg-orange-700 text-white rounded-full p-3 hover:bg-orange-600 transition-colors"
+            onClick={handleSendMessage}
+          >
+            <SendOutlined />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 
 function Jobs() {
@@ -53,51 +180,7 @@ function Jobs() {
           <Outlet />
         </div>
       </div>
-
-      {/* Chat Div - Display on the Right */}
-      <div className="md:row-span-2 col-span-1 bg-white p-4 rounded-lg shadow-lg flex flex-col justify-between h-full">
-        {/* Header */}
-        <div className="flex items-center space-x-2 p-2 border-b border-gray-300 pb-4">
-          <RobotOutlined className="text-orange-700 text-2xl" />
-          <span className="text-gray-700 text-lg font-semibold hover:text-orange-700 transition-colors">
-            Ask Kaam AI
-          </span>
-        </div>
-
-        {/* Chat Messages Section */}
-        <div className="flex-grow overflow-y-auto p-4 border border-gray-300 rounded-lg bg-gray-50 h-64 shadow-inner flex flex-col justify-between">
-          {/* Chat Messages */}
-          {/* This section can be populated dynamically with chat content */}
-          <div className="flex-grow">
-            {/* Dynamically populated chat messages would go here */}
-          </div>
-          <p className="text-center mb-2 text-gray-600">
-            {" "}
-            <ReactTyped
-              strings={["What can I help you with?"]}
-              typeSpeed={100}
-              loop
-              backSpeed={20}
-              cursorChar="|"
-              showCursor={true}
-            />
-          </p>
-        </div>
-
-
-        {/* Input Section */}
-        <div className="flex items-center space-x-2 mt-4">
-          <input
-            type="text"
-            placeholder="Type a message..."
-            className="flex-grow rounded-full p-3 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-700 transition-shadow"
-          />
-          <button className="bg-orange-700 text-white rounded-full p-3 hover:bg-orange-600 transition-colors">
-            <SendOutlined />
-          </button>
-        </div>
-      </div>
-
+      <ChatBot />
     </div>
   );
 

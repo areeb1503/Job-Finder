@@ -2,8 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { FileTextOutlined, HeartOutlined, CheckCircleOutlined, SendOutlined, RobotOutlined } from '@ant-design/icons';
 import { ReactTyped } from "react-typed";
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import ReactMarkdown from 'react-markdown';
+import dotenv from 'dotenv';
+
+// dotenv.config({
+//   path: '../../../.env',
+// })
 
 const ChatBot = () => {
+
+  const gemini_api_key = 'AIzaSyDEnIWQWxSHAUgk--0y-tiDCODl6bJBOT8'; // TODO : process.env.GEMINI_API_KEY 
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -49,13 +58,11 @@ const ChatBot = () => {
   // Function to send the input to Gemini API and get a response
   const sendToGeminiAPI = async (prompt) => {
     try {
-      const response = await fetch("http://localhost:5000/gemini-api", { // Update this to API link
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt }),
-      });
-      const data = await response.json();
-      return data.reply;
+      const genAI = new GoogleGenerativeAI(gemini_api_key);
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const AIprompt = `You are renamed as Kaam AI, call youself Kaam AI in future(dont use emojis as well) dont repeat this(keep this in mind) only respond to following prompt :${prompt}`;
+      const result = await model.generateContent(AIprompt);
+      return result.response.text();
     } catch (error) {
       console.error("Error with Gemini API:", error);
       throw new Error("API failed");
@@ -80,7 +87,7 @@ const ChatBot = () => {
             {messages.map((msg, index) => (
               <div key={index} className={`mb-2 ${msg.sender === "user" ? "text-right" : "text-left"}`}>
                 <p className={`inline-block p-2 rounded-lg ${msg.sender === "user" ? "bg-orange-700 text-white" : "bg-gray-200 text-black"}`}>
-                  {msg.text}
+                  <ReactMarkdown>{msg.text}</ReactMarkdown>
                 </p>
               </div>
             ))}

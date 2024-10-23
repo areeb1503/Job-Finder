@@ -14,14 +14,15 @@ function Recommend() {
   const [searchTerm, setSearchTerm] = useState(''); // State for search input
   const [likedJobs, setLikedJobs] = useState([]); // State for liked jobs
   const { selectedJobs, setSelectedJobs } = useSelectedJobs() // Will select only one job id out of the jobs
+  const [filteredJobs, setFilteredJobs] = useState(jobs);
 
   // Effect to filter jobs based on the search term
   useEffect(() => {
     const filtered = jobs.filter(job =>
       job.title.toLowerCase().includes(searchTerm.toLowerCase())
     );
-    setJobs(filtered);
-  }, [searchTerm, jobs.results]);
+    setFilteredJobs(filtered);
+  }, [searchTerm, jobs]);
 
   useEffect(() => {
     console.log(selectedJobs);  // Will now log the correct value after state update
@@ -53,7 +54,7 @@ function Recommend() {
       </div>
 
       {/* Job Cards */}
-      {jobs.map((job) => (
+      {filteredJobs.map((job) => (
         <Card
           key={job.id}
           title={

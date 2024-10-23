@@ -5,6 +5,10 @@ import { ReactTyped } from "react-typed";
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import ReactMarkdown from 'react-markdown';
 import dotenv from 'dotenv';
+import { SelectedJobsProvider } from '../../Contexts/SelectedJobsContext';
+import { FetchedJobsProvider } from '../../Contexts/FetchedJobsContext';
+import { useSelectedJobs } from '../../Contexts/SelectedJobsContext';
+import { useFetchedJobs } from '../../Contexts/FetchedJobsContext';
 
 // dotenv.config({
 //   path: '../../../.env',
@@ -12,7 +16,22 @@ import dotenv from 'dotenv';
 
 const ChatBot = () => {
 
-  const gemini_api_key = 'AIzaSyDEnIWQWxSHAUgk--0y-tiDCODl6bJBOT8'; // TODO : process.env.GEMINI_API_KEY 
+  const { jobs } = useFetchedJobs();
+  const { selectedJobs } = useSelectedJobs() // Used to select a single job id from recommend component.
+  const [filteredJob, setFilteredJob] = useState(null);
+  console.log(filteredJob);
+
+  useEffect(() => {
+    if (!jobs){
+      setFilteredJob('');
+    }
+    const filter = jobs.filter((job)=>job.id === selectedJobs)[0]; // Filter the the job with id === selectedJobs
+    setFilteredJob(filter);
+    console.log(filteredJob);
+  }, [selectedJobs])
+
+  
+  const gemini_api_key = 'AIzaSyC4BkXsPlqOgIwY5RRJXBlgWmG4imHI4EQ'; // TODO : process.env.GEMINI_API_KEY 
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -60,7 +79,8 @@ const ChatBot = () => {
     try {
       const genAI = new GoogleGenerativeAI(gemini_api_key);
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-      const AIprompt = `You are renamed as Kaam AI, call youself Kaam AI in future(dont use emojis as well) dont repeat this(keep this in mind) only respond to following prompt :${prompt}`;
+      const KaamAI = 'Call yourself as Kaam AI';
+      const AIprompt = `${KaamAI} respond to following prompt : ${filteredJob?.title || ''},${filteredJob.description || ''},${filteredJob.company.display_name || ''},${filteredJob.contract_type || ''}, ${prompt}`;
       const result = await model.generateContent(AIprompt);
       return result.response.text();
     } catch (error) {
@@ -146,35 +166,37 @@ const ChatBot = () => {
 
 function Jobs() {
   return (
-    <div className="grid grid-rows-[auto_1fr] grid-cols-1 md:grid-cols-3 h-screen gap-2 p-0 overflow-hidden">
-      {/* Content Div - Display on the Left */}
-      <div className="col-span-1 md:col-span-2 md:row-span-2 row-span-9 bg-white p-4 rounded-lg shadow-lg overflow-y-auto h-full flex flex-col">
-        {/* Fixed Navigation Div */}
-        <nav className="bg-white shadow-lg p-4 mt-0 rounded-lg mx-2 flex-shrink-0">
-          <ul className="flex gap-5 md:gap-10 flex-wrap">
-            <li>
-              <NavLink
-                to="/app/jobs/"
-                className={({ isActive }) =>
-                  `flex items-center px-4 py-2 rounded-lg ${isActive ? 'text-orange-700' : 'text-gray-700'} hover:text-orange-700 hover:bg-gray-100 duration-200`
-                }
-              >
-                <FileTextOutlined className="mr-2" />
-                Recommended
-              </NavLink>
-            </li>
-            <li>
-              <NavLink
-                to="/app/jobs/liked"
-                className={({ isActive }) =>
-                  `flex items-center px-4 py-2 rounded-lg ${isActive ? 'text-orange-700' : 'text-gray-700'} hover:text-orange-700 hover:bg-gray-100 duration-200`
-                }
-              >
-                <HeartOutlined className="mr-2" />
-                Liked
-              </NavLink>
-            </li>
-            {/* <li>
+    <FetchedJobsProvider>
+      <SelectedJobsProvider>
+        <div className="grid grid-rows-[auto_1fr] grid-cols-1 md:grid-cols-3 h-screen gap-2 p-0 overflow-hidden">
+          {/* Content Div - Display on the Left */}
+          <div className="col-span-1 md:col-span-2 md:row-span-2 row-span-9 bg-white p-4 rounded-lg shadow-lg overflow-y-auto h-full flex flex-col">
+            {/* Fixed Navigation Div */}
+            <nav className="bg-white shadow-lg p-4 mt-0 rounded-lg mx-2 flex-shrink-0">
+              <ul className="flex gap-5 md:gap-10 flex-wrap">
+                <li>
+                  <NavLink
+                    to="/app/jobs/"
+                    className={({ isActive }) =>
+                      `flex items-center px-4 py-2 rounded-lg ${isActive ? 'text-orange-700' : 'text-gray-700'} hover:text-orange-700 hover:bg-gray-100 duration-200`
+                    }
+                  >
+                    <FileTextOutlined className="mr-2" />
+                    Recommended
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink
+                    to="/app/jobs/liked"
+                    className={({ isActive }) =>
+                      `flex items-center px-4 py-2 rounded-lg ${isActive ? 'text-orange-700' : 'text-gray-700'} hover:text-orange-700 hover:bg-gray-100 duration-200`
+                    }
+                  >
+                    <HeartOutlined className="mr-2" />
+                    Liked
+                  </NavLink>
+                </li>
+                {/* <li>
               <NavLink
                 to="/app/applied"
                 className={({ isActive }) =>
@@ -185,16 +207,18 @@ function Jobs() {
                 Applied
               </NavLink>
             </li> */}
-          </ul>
-        </nav>
+              </ul>
+            </nav>
 
-        {/* Scrollable Outlet Component */}
-        <div className="flex-grow overflow-y-auto p-4">
-          <Outlet />
+            {/* Scrollable Outlet Component */}
+            <div className="flex-grow overflow-y-auto p-4">
+              <Outlet />
+            </div>
+          </div>
+          <ChatBot />
         </div>
-      </div>
-      <ChatBot />
-    </div>
+      </SelectedJobsProvider>
+    </FetchedJobsProvider>
   );
 
 

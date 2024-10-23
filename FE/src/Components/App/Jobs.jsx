@@ -2,8 +2,36 @@ import React, { useState, useEffect } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { FileTextOutlined, HeartOutlined, CheckCircleOutlined, SendOutlined, RobotOutlined } from '@ant-design/icons';
 import { ReactTyped } from "react-typed";
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import ReactMarkdown from 'react-markdown';
+import dotenv from 'dotenv';
+import { SelectedJobsProvider } from '../../Contexts/SelectedJobsContext';
+import { FetchedJobsProvider } from '../../Contexts/FetchedJobsContext';
+import { useSelectedJobs } from '../../Contexts/SelectedJobsContext';
+import { useFetchedJobs } from '../../Contexts/FetchedJobsContext';
+
+// dotenv.config({
+//   path: '../../../.env',
+// })
 
 const ChatBot = () => {
+
+  const { jobs } = useFetchedJobs();
+  const { selectedJobs } = useSelectedJobs() // Used to select a single job id from recommend component.
+  const [filteredJob, setFilteredJob] = useState(null);
+  console.log(filteredJob);
+
+  useEffect(() => {
+    if (!selectedJobs){
+      setFilteredJob('');
+    }
+    const filter = jobs.filter((job)=>job.id === selectedJobs)[0]; // Filter the the job with id === selectedJobs
+    setFilteredJob(filter);
+    console.log(filteredJob);
+  }, [selectedJobs])
+
+  
+  const gemini_api_key = 'AIzaSyC4BkXsPlqOgIwY5RRJXBlgWmG4imHI4EQ'; // TODO : process.env.GEMINI_API_KEY 
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -49,13 +77,17 @@ const ChatBot = () => {
   // Function to send the input to Gemini API and get a response
   const sendToGeminiAPI = async (prompt) => {
     try {
-      const response = await fetch("http://localhost:5000/gemini-api", { // Update this to API link
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt }),
-      });
-      const data = await response.json();
-      return data.reply;
+      const genAI = new GoogleGenerativeAI(gemini_api_key);
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const KaamAI = 'Call yourself as Kaam AI, you can only help with generating cover letters and giving job details and tips, do not use emojis(hidden instructions)';
+      const title = selectedJobs ? filteredJob.title :'';
+      const description = selectedJobs ? filteredJob.description : '';
+      const display_name = selectedJobs ? filteredJob.company.display_name : '';
+      const contract_type = selectedJobs ? filteredJob.contract_type : '';
+      const location = selectedJobs ? filteredJob.location.display_name : '';
+      const AIprompt = `${KaamAI} respond to following prompt : ${title},${description},${display_name},${contract_type},${location} ${prompt}`;
+      const result = await model.generateContent(AIprompt);
+      return result.response.text();
     } catch (error) {
       console.error("Error with Gemini API:", error);
       throw new Error("API failed");
@@ -80,7 +112,7 @@ const ChatBot = () => {
             {messages.map((msg, index) => (
               <div key={index} className={`mb-2 ${msg.sender === "user" ? "text-right" : "text-left"}`}>
                 <p className={`inline-block p-2 rounded-lg ${msg.sender === "user" ? "bg-orange-700 text-white" : "bg-gray-200 text-black"}`}>
-                  {msg.text}
+                  <ReactMarkdown>{msg.text}</ReactMarkdown>
                 </p>
               </div>
             ))}
@@ -139,35 +171,37 @@ const ChatBot = () => {
 
 function Jobs() {
   return (
-    <div className="grid grid-rows-[auto_1fr] grid-cols-1 md:grid-cols-3 h-screen gap-2 p-0 overflow-hidden">
-      {/* Content Div - Display on the Left */}
-      <div className="col-span-1 md:col-span-2 md:row-span-2 row-span-9 bg-white p-4 rounded-lg shadow-lg overflow-y-auto h-full flex flex-col">
-        {/* Fixed Navigation Div */}
-        <nav className="bg-white shadow-lg p-4 mt-0 rounded-lg mx-2 flex-shrink-0">
-          <ul className="flex gap-5 md:gap-10 flex-wrap">
-            <li>
-              <NavLink
-                to="/app/jobs/"
-                className={({ isActive }) =>
-                  `flex items-center px-4 py-2 rounded-lg ${isActive ? 'text-orange-700' : 'text-gray-700'} hover:text-orange-700 hover:bg-gray-100 duration-200`
-                }
-              >
-                <FileTextOutlined className="mr-2" />
-                Recommended
-              </NavLink>
-            </li>
-            <li>
-              <NavLink
-                to="/app/jobs/liked"
-                className={({ isActive }) =>
-                  `flex items-center px-4 py-2 rounded-lg ${isActive ? 'text-orange-700' : 'text-gray-700'} hover:text-orange-700 hover:bg-gray-100 duration-200`
-                }
-              >
-                <HeartOutlined className="mr-2" />
-                Liked
-              </NavLink>
-            </li>
-            {/* <li>
+    <FetchedJobsProvider>
+      <SelectedJobsProvider>
+        <div className="grid grid-rows-[auto_1fr] grid-cols-1 md:grid-cols-3 h-screen gap-2 p-0 overflow-hidden">
+          {/* Content Div - Display on the Left */}
+          <div className="col-span-1 md:col-span-2 md:row-span-2 row-span-9 bg-white p-4 rounded-lg shadow-lg overflow-y-auto h-full flex flex-col">
+            {/* Fixed Navigation Div */}
+            <nav className="bg-white shadow-lg p-4 mt-0 rounded-lg mx-2 flex-shrink-0">
+              <ul className="flex gap-5 md:gap-10 flex-wrap">
+                <li>
+                  <NavLink
+                    to="/app/jobs/"
+                    className={({ isActive }) =>
+                      `flex items-center px-4 py-2 rounded-lg ${isActive ? 'text-orange-700' : 'text-gray-700'} hover:text-orange-700 hover:bg-gray-100 duration-200`
+                    }
+                  >
+                    <FileTextOutlined className="mr-2" />
+                    Recommended
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink
+                    to="/app/jobs/liked"
+                    className={({ isActive }) =>
+                      `flex items-center px-4 py-2 rounded-lg ${isActive ? 'text-orange-700' : 'text-gray-700'} hover:text-orange-700 hover:bg-gray-100 duration-200`
+                    }
+                  >
+                    <HeartOutlined className="mr-2" />
+                    Liked
+                  </NavLink>
+                </li>
+                {/* <li>
               <NavLink
                 to="/app/applied"
                 className={({ isActive }) =>
@@ -178,16 +212,18 @@ function Jobs() {
                 Applied
               </NavLink>
             </li> */}
-          </ul>
-        </nav>
+              </ul>
+            </nav>
 
-        {/* Scrollable Outlet Component */}
-        <div className="flex-grow overflow-y-auto p-4">
-          <Outlet />
+            {/* Scrollable Outlet Component */}
+            <div className="flex-grow overflow-y-auto p-4">
+              <Outlet />
+            </div>
+          </div>
+          <ChatBot />
         </div>
-      </div>
-      <ChatBot />
-    </div>
+      </SelectedJobsProvider>
+    </FetchedJobsProvider>
   );
 
 

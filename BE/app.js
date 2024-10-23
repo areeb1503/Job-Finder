@@ -12,12 +12,16 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); // to parse form data(urlencoded)
 app.use(cookieParser());
+app.use(express.static("public"))
 
 
 // Routes import 
+import userRoutes from './route/user.route.js';
+
 
 
 // Route declaration
 
+app.use('/api/v1/users', userRoutes);
 
 export {app}

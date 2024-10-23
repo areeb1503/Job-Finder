@@ -23,16 +23,16 @@ const userSchema= new Schema({
         enum:['student','recruiter'],
         required:true
     },
-    profile:{
+    
         bio:{type:String},
-        resume:{type:String}, // URL to resume file
+        resume:{type:String,default:""}, // URL to resume file
         resumeOriginalName:{type:String},
         company:{type:mongoose.Schema.Types.ObjectId, ref:'Company'}, 
         profilePhoto:{
             type:String,
             default:""
-        }
-    },
+        },
+    
     likedJobs: [
         {
             type: mongoose.Schema.Types.ObjectId,

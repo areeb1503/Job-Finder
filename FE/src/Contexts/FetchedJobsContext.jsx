@@ -126,9 +126,9 @@ export const FetchedJobsProvider = ({ children }) => {
   )
 }
 
-// FetchedJobsProvider.PropTypes = {
-//   children : PropTypes.node.isRequired
-// }
+FetchedJobsProvider.PropTypes = {
+  children : PropTypes.node.isRequired
+}
 
 export const useFetchedJobs = () =>{
   return useContext(FetchedJobsContext);

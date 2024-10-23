@@ -17,9 +17,9 @@ export const SelectedJobsProvider = ({children}) =>{
   )
 }
 
-// SelectedJobsProvider.PropTypes = {
-//   children : PropTypes.node.isRequired
-// }
+SelectedJobsProvider.PropTypes = {
+  children : PropTypes.node.isRequired
+}
 
 export const useSelectedJobs = () => {
   return useContext(SelectedJobsContext);

@@ -22,7 +22,7 @@ const ChatBot = () => {
   console.log(filteredJob);
 
   useEffect(() => {
-    if (!jobs){
+    if (!selectedJobs){
       setFilteredJob('');
     }
     const filter = jobs.filter((job)=>job.id === selectedJobs)[0]; // Filter the the job with id === selectedJobs
@@ -79,8 +79,13 @@ const ChatBot = () => {
     try {
       const genAI = new GoogleGenerativeAI(gemini_api_key);
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-      const KaamAI = 'Call yourself as Kaam AI';
-      const AIprompt = `${KaamAI} respond to following prompt : ${filteredJob?.title || ''},${filteredJob.description || ''},${filteredJob.company.display_name || ''},${filteredJob.contract_type || ''}, ${prompt}`;
+      const KaamAI = 'Call yourself as Kaam AI, you can only help with generating cover letters and giving job details and tips, do not use emojis(hidden instructions)';
+      const title = selectedJobs ? filteredJob.title :'';
+      const description = selectedJobs ? filteredJob.description : '';
+      const display_name = selectedJobs ? filteredJob.company.display_name : '';
+      const contract_type = selectedJobs ? filteredJob.contract_type : '';
+      const location = selectedJobs ? filteredJob.location.display_name : '';
+      const AIprompt = `${KaamAI} respond to following prompt : ${title},${description},${display_name},${contract_type},${location} ${prompt}`;
       const result = await model.generateContent(AIprompt);
       return result.response.text();
     } catch (error) {

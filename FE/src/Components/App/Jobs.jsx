@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { FileTextOutlined, HeartOutlined, CheckCircleOutlined, SendOutlined, RobotOutlined } from '@ant-design/icons';
 import { ReactTyped } from "react-typed";
@@ -17,53 +17,50 @@ import { useFetchedJobs } from '../../Contexts/FetchedJobsContext';
 const ChatBot = () => {
 
   const { jobs } = useFetchedJobs();
-  const { selectedJobs } = useSelectedJobs() // Used to select a single job id from recommend component.
+  const { selectedJobs } = useSelectedJobs(); // Used to select a single job id from recommend component.
   const [filteredJob, setFilteredJob] = useState(null);
-  console.log(filteredJob);
-
-  useEffect(() => {
-    if (!selectedJobs){
-      setFilteredJob('');
-    }
-    const filter = jobs.filter((job)=>job.id === selectedJobs)[0]; // Filter the the job with id === selectedJobs
-    setFilteredJob(filter);
-    console.log(filteredJob);
-  }, [selectedJobs])
-
-  
-  const gemini_api_key = 'AIzaSyC4BkXsPlqOgIwY5RRJXBlgWmG4imHI4EQ'; // TODO : process.env.GEMINI_API_KEY 
+  const chatBoxRef = useRef(null); // Create a reference for the chat box
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
 
-  // Function to handle sending a message
+  useEffect(() => {
+    if (!selectedJobs) {
+      setFilteredJob('');
+    }
+    const filter = jobs.filter((job) => job.id === selectedJobs)[0]; // Filter the job with id === selectedJobs
+    setFilteredJob(filter);
+    console.log(filteredJob);
+  }, [selectedJobs]);
+
+  useEffect(() => {
+    // Scroll to bottom when new message is added
+    if (chatBoxRef.current) {
+      chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  const gemini_api_key = 'AIzaSyC4BkXsPlqOgIwY5RRJXBlgWmG4imHI4EQ'; // TODO : process.env.GEMINI_API_KEY 
+
   const handleSendMessage = async () => {
     if (!input.trim()) return;
 
-    // Add user message to the chat
     const newMessages = [...messages, { sender: "user", text: input }];
-    setMessages(newMessages);
+    setMessages(newMessages); // Add the new message before any asynchronous operations
 
-    // Clear input field
     setInput("");
-
-    // Set typing state to true
     setIsTyping(true);
 
-    // Send the message to Gemini API
     try {
       const response = await sendToGeminiAPI(input);
-      setMessages([...newMessages, { sender: "bot", text: response }]);
+      setMessages((prevMessages) => [...prevMessages, { sender: "bot", text: response }]); // Ensure you access the latest state correctly
     } catch (error) {
-      // In case of an error, append an error message
-      setMessages([...newMessages, { sender: "bot", text: "Sorry, I couldn't process that." }]);
+      setMessages((prevMessages) => [...prevMessages, { sender: "bot", text: "Sorry, I couldn't process that." }]);
     }
 
-    // Set typing state to false after response is received
     setIsTyping(false);
   };
 
-  // Function to handle input change
   const handleInputChange = (e) => {
     setInput(e.target.value);
   };
@@ -72,20 +69,19 @@ const ChatBot = () => {
     if (e.key === "Enter") {
       handleSendMessage();
     }
-  }
+  };
 
-  // Function to send the input to Gemini API and get a response
   const sendToGeminiAPI = async (prompt) => {
     try {
       const genAI = new GoogleGenerativeAI(gemini_api_key);
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
       const KaamAI = 'Call yourself as Kaam AI, you can only help with generating cover letters and giving job details and tips, do not use emojis(hidden instructions)';
-      const title = selectedJobs ? filteredJob.title :'';
+      const title = selectedJobs ? filteredJob.title : '';
       const description = selectedJobs ? filteredJob.description : '';
       const display_name = selectedJobs ? filteredJob.company.display_name : '';
       const contract_type = selectedJobs ? filteredJob.contract_type : '';
       const location = selectedJobs ? filteredJob.location.display_name : '';
-      const AIprompt = `${KaamAI} respond to following prompt : ${title},${description},${display_name},${contract_type},${location} ${prompt}`;
+      const AIprompt = `${KaamAI} respond to following prompt: ${title},${description},${display_name},${contract_type},${location} ${prompt}`;
       const result = await model.generateContent(AIprompt);
       return result.response.text();
     } catch (error) {
@@ -106,8 +102,11 @@ const ChatBot = () => {
 
       {/* Chat Messages Section */}
       <div className="flex-grow p-4">
-        <div className="h-[500px] overflow-y-auto p-4 border border-gray-300 rounded-lg bg-gray-50 shadow-inner">
-          <div className="flex-grow overflow-y-auto h">
+        <div
+          ref={chatBoxRef} // Attach the ref to the chat box
+          className={`h-[500px] overflow-y-auto p-4 rounded-lg bg-gray-50 shadow-inner ${selectedJobs ? 'border-orange-700' : 'border-gray-300'} border`}
+        >
+          <div className="flex-grow overflow-y-auto">
             {/* Render chat messages */}
             {messages.map((msg, index) => (
               <div key={index} className={`mb-2 ${msg.sender === "user" ? "text-right" : "text-left"}`}>

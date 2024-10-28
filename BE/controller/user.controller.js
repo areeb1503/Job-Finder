@@ -158,7 +158,7 @@ const refreshAccessToken = async (req, res) => {
       incomingRefreshtoken,
       process.env.REFRESH_TOKEN_SECRET
     );
-    const user = await User.findById(decodedToken._id);
+    const user = await User.findById(decodedToken.id);
 
     if (!user) {
       throw new ApiError(401, "Invalid Refresh Token");
@@ -192,16 +192,25 @@ const refreshAccessToken = async (req, res) => {
     throw new ApiError(401, error?.message || "Invalid Refresh Token");
   }
 };
+const getCurrentUser=async(req,res)=>{
+  return res
+  .status(200)
+  .json(new ApiResponse(
+      200,
+      req.user,
+      "User fetched successfully"
+  ))
+}
 const updateUserProfile = async (req, res) => {
   try {
     const { fullname, email, phoneNumber } = req.body;
     if (!(fullname || email || phoneNumber)) {
       throw new ApiError(400, "Fileld is required for updation");
     }
-    console.log(fullname, email, phoneNumber);
+    const userId = await User.findById(req.user?._id);
 
-    const user = await User.updateOne(
-      req.user?._id,
+    const user = await User.findByIdAndUpdate(
+      userId,
       {
         $set: {
           fullname,
@@ -210,7 +219,7 @@ const updateUserProfile = async (req, res) => {
         },
       },
       { new: true }
-    ).select("-password");
+    ).select("-password ");
     console.log(user);
     return res
       .status(200)
@@ -223,6 +232,31 @@ const updateUserProfile = async (req, res) => {
     );
   }
 };
+const updatePassword = async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+  if (!oldPassword || !newPassword) {
+    throw new ApiError(400, "Please provide old and new password");
+  }
+  try {
+    const user = await User.findById(req.user._id);
+    const isPasswordValid = await user.isPasswordCorrect(oldPassword);
+    if (!isPasswordValid) {
+      throw new ApiError(401, "Invalid old password");
+    }
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    await user.save({ validateBeforeSave: false });
+    return res
+      .status(200)
+      .json(new ApiResponse(200, {}, "Password updated successfully"));
+  } catch (error) {
+    throw new ApiError(
+      500,
+      "Error in updatePassword controller",
+      error.message
+    );
+  }
+};
 export {
   register,
   login,
@@ -230,4 +264,6 @@ export {
   logout,
   refreshAccessToken,
   updateUserProfile,
+  updatePassword,
+  getCurrentUser, 
 };

@@ -86,9 +86,10 @@ const login = async (req, res) => {
       throw new ApiError(401, "Invalid credentials");
     }
 
-    if (role != user.role) {
-      throw new ApiError(403, "Unauthorized Access");
-    }
+    // if (role != user.role) {
+    //   throw new ApiError(403, "Unauthorized Access");
+    // } // No need for this since role field is not there in the login form.
+
     const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
       user._id
     );
@@ -100,6 +101,7 @@ const login = async (req, res) => {
     const options = {
       httpOnly: true,
       secure: true,
+      maxAge: 24 * 60 * 60 * 1000,
     };
     return res
       .status(200)
@@ -111,7 +113,7 @@ const login = async (req, res) => {
           {
             user: loggedInUser,
             accessToken,
-            refreshToken,
+            // refreshToken,
           },
           "User Logged In Successfully."
         )
@@ -121,6 +123,7 @@ const login = async (req, res) => {
   }
 };
 const logout = async (req, res) => {
+  // On client, also delete the accessToken
   await User.findByIdAndUpdate(
     req.user._id,
 
@@ -178,8 +181,9 @@ const refreshAccessToken = async (req, res) => {
         new ApiResponse(
           200,
           {
-            user: accessToken,
-            refreshToken: newRefreshToken,
+            user: user,
+            accessToken: accessToken,
+            // refreshToken: newRefreshToken,
           },
           "Access Token refreshed successfully"
         )

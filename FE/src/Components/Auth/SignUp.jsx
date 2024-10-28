@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
 import { Upload, Button } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
-import { Link,useNavigate } from 'react-router-dom';
-import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons'; 
+import { Link, useNavigate } from 'react-router-dom';
+import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
+import Cookies from 'universal-cookie';
+
+const cookies = new Cookies();
+
 const SignUp = () => {
 
     const navigate = useNavigate();
@@ -13,11 +17,9 @@ const SignUp = () => {
         phoneNumber: '',
         password: '',
         role: 'recruiter', // Default role is recruiter.
-        bio: '',
+        company: '',
         resume: null,
-        resumeOriginalName: '',
         profilePhoto: null,
-        profilePhotoOriginalName: ''
     });
 
     const [showPassword, setShowPassword] = useState(false); // State to manage password visibility
@@ -36,11 +38,47 @@ const SignUp = () => {
         return false; // Prevent automatic upload
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+
+        try {
+            const { fullname, email, phoneNumber, password, role, company, resume, profilePhoto } = formData;
+
+            const response = await fetch('https://localhost:8000/api/v1/users/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    fullname, email, phoneNumber, password, role, company, resume, profilePhoto
+                })
+            })
+
+            // if (response.ok) {
+            //     const data = await response.json();   // Will have to hit the generateAccessAndRefreshToken route to get the access and refresh token from the backend.
+            //     const { token, userId, hashedPassword, fullName } = data;
+            //     cookies.set('token', token);
+            //     cookies.set('username', username);
+            //     cookies.set('fullName', fullName);
+            //     cookies.set('userId', userId);
+          
+            //     if (isSignup) {
+            //       cookies.set('phoneNumber', phoneNumber);
+            //       cookies.set('avatarURL', avatarURL);
+            //       cookies.set('hashedPassword', hashedPassword);
+            //     }
+          
+            //     navigate('/app/');
+            //   } else {
+            //     console.error('Request failed', response.statusText);
+
+            //   }
+        } catch (error) {
+
+        }
+
         // Send data to backend
         // console.log(formData);
-        navigate('/app/');
 
     };
 
@@ -125,17 +163,17 @@ const SignUp = () => {
                         </select>
                     </div>
 
-                    {formData.role === 'student' && (
+                    {formData.role === 'recruiter' && (
                         <div className="col-span-1 sm:col-span-2">
-                        <label className="block text-gray-700 font-semibold mb-1">Bio</label>
-                        <textarea
-                            name="bio"
-                            value={formData.bio}
-                            onChange={handleChange}
-                            rows="3"
-                            className="border border-gray-300 px-4 py-2 rounded-md w-full focus:border-orange-700 focus:ring-1 focus:ring-orange-700"
-                        ></textarea>
-                    </div>
+                            <label className="block text-gray-700 font-semibold mb-1">Company</label>
+                            <input
+                                name="company"
+                                value={formData.company}
+                                onChange={handleChange}
+                                rows="3"
+                                className="border border-gray-300 px-4 py-2 rounded-md w-full focus:border-orange-700 focus:ring-1 focus:ring-orange-700"
+                            />
+                        </div>
                     )}
 
                     {/* Conditionally render the resume upload field */}

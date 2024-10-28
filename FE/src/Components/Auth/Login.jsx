@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
+import Cookies from 'universal-cookie';
+
+const cookies = new Cookies();
 
 const Login = () => {
 

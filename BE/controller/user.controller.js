@@ -155,7 +155,7 @@ const refreshAccessToken = async (req, res) => {
       incomingRefreshtoken,
       process.env.REFRESH_TOKEN_SECRET
     );
-    const user = await User.findById(decodedToken._id);
+    const user = await User.findById(decodedToken.id);
 
     if (!user) {
       throw new ApiError(401, "Invalid Refresh Token");
@@ -188,6 +188,15 @@ const refreshAccessToken = async (req, res) => {
     throw new ApiError(401, error?.message || "Invalid Refresh Token");
   }
 };
+const getCurrentUser=async(req,res)=>{
+  return res
+  .status(200)
+  .json(new ApiResponse(
+      200,
+      req.user,
+      "User fetched successfully"
+  ))
+}
 const updateUserProfile = async (req, res) => {
   try {
     const { fullname, email, phoneNumber } = req.body;
@@ -252,4 +261,5 @@ export {
   refreshAccessToken,
   updateUserProfile,
   updatePassword,
+  getCurrentUser, 
 };

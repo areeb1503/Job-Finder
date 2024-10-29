@@ -6,11 +6,14 @@ import { EyeOutlined, EyeInvisibleOutlined, ExclamationCircleOutlined } from '@a
 import Cookies from 'universal-cookie';
 import { faCheck, faTimes, faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import axios from '../../api/axios.js';
+
 
 
 const cookies = new Cookies();
 
 const PWD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[1@#$%]).{8,24}$/;
+const REGISTER_URL = '/api/v1/users/register';
 
 const SignUp = () => {
     const navigate = useNavigate();
@@ -85,47 +88,34 @@ const SignUp = () => {
         if (!passCheck){
             setErrMsg("Invalid Credentials")
         }
-        setSuccess(true);
+        
+        try {
+            const {fullname, email, phoneNumber, password, role, company, resume, profilePhoto} = formData;
+            const response = await axios.post(REGISTER_URL,
+                JSON.stringify({
+                    fullname, email, phoneNumber, password, role, company, resume, profilePhoto
+                }),{
+                    headers : {"Content-Type": 'application/json'},
+                    withCredentials : true
+                }
+            );
+            console.log(response.data);
+            console.log(response.accessToken)
+            console.log(JSON.stringify(response));
+            setSuccess(true);
+            // clear input fields
 
-        // try {
-        //     const { fullname, email, phoneNumber, password, role, company, resume, profilePhoto } = formData;
-
-        //     const response = await fetch('https://localhost:8000/api/v1/users/register', {
-        //         method: 'POST',
-        //         headers: {
-        //             'Content-Type': 'application/json',
-        //         },
-        //         body: JSON.stringify({
-        //             fullname, email, phoneNumber, password, role, company, resume, profilePhoto
-        //         })
-        //     })
-
-            // if (response.ok) {
-            //     const data = await response.json();   // Will have to hit the generateAccessAndRefreshToken route to get the access and refresh token from the backend.
-            //     const { token, userId, hashedPassword, fullName } = data;
-            //     cookies.set('token', token);
-            //     cookies.set('username', username);
-            //     cookies.set('fullName', fullName);
-            //     cookies.set('userId', userId);
-
-            //     if (isSignup) {
-            //       cookies.set('phoneNumber', phoneNumber);
-            //       cookies.set('avatarURL', avatarURL);
-            //       cookies.set('hashedPassword', hashedPassword);
-            //     }
-
-            //     navigate('/app/');
-            //   } else {
-            //     console.error('Request failed', response.statusText);
-
-            //   }
-        // } catch (error) {
-
-        // }
-
-        // Send data to backend
-        // console.log(formData);
-
+            navigate('/app/');
+        } catch (error) {
+            if (!error?.response){
+                setErrMsg('No Server Response, try again later');
+            } else if(error.response?.status ===409){
+                setErrMsg('Username Taken');
+            } else {
+                setErrMsg('Registeration Failed')
+            }
+            errRef.current.focus();
+        }
     };
 
     return (

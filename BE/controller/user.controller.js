@@ -22,28 +22,31 @@ const register = async (req, res) => {
   try {
     const { fullname, email, phoneNumber, password, role } = req.body;
 
+    // Check for missing fields
     if (!fullname || !email || !phoneNumber || !password || !role) {
       throw new ApiError(400, "Please fill in all fields");
     }
 
+    // Check if the user already exists in the database
     const existingUser = await User.findOne({
       $or: [{ email }, { phoneNumber }],
     });
+
     if (existingUser) {
+      console.log(`User already exists with email: ${email} or phone number: ${phoneNumber}`);
       throw new ApiError(400, "User already exists");
     }
 
+    // Upload resume and profile photo if they exist
     const resumeFile = req.files?.resume[0]?.path;
-    const resumeUpload = await uploadOnCloudinary(resumeFile);
+    const resumeUpload = resumeFile ? await uploadOnCloudinary(resumeFile) : null;
 
-    // console.log(resumeUpload?.url);
-    const profilePhoto = req.files?.profilePhoto[0]?.path; // Assuming multer has parsed the profile photo
-    const profilePhotoUpload = await uploadOnCloudinary(profilePhoto); // Pass the 'image' tag
+    const profilePhoto = req.files?.profilePhoto[0]?.path;
+    const profilePhotoUpload = profilePhoto ? await uploadOnCloudinary(profilePhoto) : null;
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create the user in the database
-
     const user = await User.create({
       fullname,
       email,
@@ -51,26 +54,25 @@ const register = async (req, res) => {
       password: hashedPassword,
       role,
       resume: resumeUpload?.url || "",
-      profilePhoto: profilePhotoUpload?.url,
+      profilePhoto: profilePhotoUpload?.url || "",
     });
 
     // Fetch the created user without the password
     const createdUser = await User.findById(user._id).select("-password");
 
     if (!createdUser) {
-      throw new ApiError(
-        500,
-        "Something went wrong while registering the user"
-      );
+      throw new ApiError(500, "Something went wrong while registering the user");
     }
 
     return res
       .status(201)
       .json(new ApiResponse(200, createdUser, "User registered successfully"));
   } catch (error) {
-    throw new ApiError(500, "Error in register controller", error.message);
+    console.error("Error:", error.message); // Log specific error details
+    throw new ApiError(500, "Error in register controller"); // Only pass the status and message
   }
 };
+
 const login = async (req, res) => {
   try {
     const { email, password, role } = req.body;
@@ -192,14 +194,14 @@ const refreshAccessToken = async (req, res) => {
     throw new ApiError(401, error?.message || "Invalid Refresh Token");
   }
 };
-const getCurrentUser=async(req,res)=>{
+const getCurrentUser = async (req, res) => {
   return res
-  .status(200)
-  .json(new ApiResponse(
+    .status(200)
+    .json(new ApiResponse(
       200,
       req.user,
       "User fetched successfully"
-  ))
+    ))
 }
 const updateUserProfile = async (req, res) => {
   try {
@@ -265,5 +267,5 @@ export {
   refreshAccessToken,
   updateUserProfile,
   updatePassword,
-  getCurrentUser, 
+  getCurrentUser,
 };

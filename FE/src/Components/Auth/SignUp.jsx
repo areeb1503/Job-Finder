@@ -17,18 +17,14 @@ const REGISTER_URL = '/api/v1/users/register';
 
 const SignUp = () => {
     const navigate = useNavigate();
-
     const fullnameRef = useRef();
-    const errRef = useRef()
+    const errRef = useRef();
 
     const [fullnameFocus, setFullnameFocus] = useState(false);
 
-    // states for password
     const [validPassword, setValidPassword] = useState(false);
     const [pwdFocus, setPwdFocus] = useState(false);
 
-
-    // states for confirm password
     const [matchPassword, setMatchPassword] = useState('');
     const [validMatch, setValidMatch] = useState(false);
     const [matchFocus, setMatchFocus] = useState(false);
@@ -41,7 +37,7 @@ const SignUp = () => {
         email: '',
         phoneNumber: '',
         password: '',
-        role: 'recruiter', // Default role is recruiter.
+        role: 'recruiter',
         company: '',
         resume: null,
         profilePhoto: null,
@@ -49,70 +45,95 @@ const SignUp = () => {
 
     useEffect(() => {
         fullnameRef.current.focus();
-    }, [])
+    }, []);
 
     useEffect(() => {
         const result = PWD_REGEX.test(formData.password);
-        // console.log(result);
-        // console.log(formData.password);
-        setValidPassword(result)
+        setValidPassword(result);
         const match = formData.password === matchPassword;
-        setValidMatch(match)
+        setValidMatch(match);
     }, [formData.password, matchPassword]);
 
     useEffect(() => {
         setErrMsg('');
-    }, [formData, matchPassword])
+    }, [formData, matchPassword]);
 
-    const [showPassword, setShowPassword] = useState(false); // State to manage password visibility
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleChange = (e) => {
-        const { name, value, files } = e.target; // Destructuring name, value and files from e.target
+        const { name, value, files } = e.target;
         if (name === 'resume' || name === 'profilePhoto') {
-            setFormData({ ...formData, [name]: files[0], [`${name}OriginalName`]: files[0].name });
+            setFormData({ ...formData, [name]: files[0] });
         } else {
             setFormData({ ...formData, [name]: value });
         }
     };
 
     const handleUpload = (name, file) => {
-        setFormData({ ...formData, [name]: file, [`${name}OriginalName`]: file.name });
-        return false; // Prevent automatic upload
+        setFormData({ ...formData, [name]: file });
+        return false;
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        const passCheck = PWD_REGEX.test(FormData.password);
-
-        if (!passCheck){
-            setErrMsg("Invalid Credentials")
+    
+        const passCheck = PWD_REGEX.test(formData.password);
+    
+        if (!passCheck) {
+            setErrMsg("Invalid Credentials");
+            return;
+        }
+    
+        const { fullname, email, phoneNumber, password, role, company, resume, profilePhoto } = formData;
+    
+        // Creating FormData object for file uploads
+        const formDataToSubmit = new FormData();
+        formDataToSubmit.append('fullname', fullname);
+        formDataToSubmit.append('email', email);
+        formDataToSubmit.append('phoneNumber', phoneNumber);
+        formDataToSubmit.append('password', password);
+        formDataToSubmit.append('role', role);
+        formDataToSubmit.append('company', company);
+    
+        // Conditionally append resume only if the role is 'student'
+        if (role === 'student' && resume) {
+            formDataToSubmit.append('resume', resume);
         }
         
+        // Append profilePhoto if available
+        if (profilePhoto) {
+            formDataToSubmit.append('profilePhoto', profilePhoto);
+        }
+    
         try {
-            const {fullname, email, phoneNumber, password, role, company, resume, profilePhoto} = formData;
-            const response = await axios.post(REGISTER_URL,
-                JSON.stringify({
-                    fullname, email, phoneNumber, password, role, company, resume, profilePhoto
-                }),{
-                    headers : {"Content-Type": 'application/json'},
-                    withCredentials : true
-                }
-            );
+            const response = await axios.post(REGISTER_URL, formDataToSubmit, {
+                headers: { "Content-Type": 'multipart/form-data' },
+                withCredentials: true
+            });
+            
             console.log(response.data);
-            console.log(response.accessToken)
-            console.log(JSON.stringify(response));
+            console.log(response.data.data.accessToken);
+    
             setSuccess(true);
-            // clear input fields
-
+            setFormData({
+                fullname: '',
+                email: '',
+                phoneNumber: '',
+                password: '',
+                role: 'recruiter',
+                company: '',
+                resume: null,
+                profilePhoto: null,
+            });
+            setMatchPassword('');
             navigate('/app/');
         } catch (error) {
-            if (!error?.response){
+            if (!error?.response) {
                 setErrMsg('No Server Response, try again later');
-            } else if(error.response?.status ===409){
-                setErrMsg('Username Taken');
+            } else if (error.response?.status === 400) {
+                setErrMsg('User already exists');
             } else {
-                setErrMsg('Registeration Failed')
+                setErrMsg('Registration Failed');
             }
             errRef.current.focus();
         }

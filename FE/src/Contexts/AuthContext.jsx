@@ -5,21 +5,9 @@ import PropTypes from 'prop-types';
 const AuthContext = createContext();
 
 export const AuthProvider = ({children}) =>{
-    const [err,setErr] = useState(false);
-    const [user, setUser] = useState({});
-
-    useEffect(() => {
-        try {
-          //fetch Job data from the backend // https://localhost:8000/api/v1/users/register
-
-        } catch (error) {
-          console.log("Error fetching user", error);
-          setErr(true);
-        }
-      }, []);
-
+  const [auth, setAuth] = useState({})
       return (
-        <AuthContext.Provider>
+        <AuthContext.Provider value={{auth, setAuth}}>
             {children}
         </AuthContext.Provider>
       )

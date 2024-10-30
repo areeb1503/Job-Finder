@@ -127,10 +127,10 @@ const SignUp = () => {
             });
             setMatchPassword('');
             navigate('/app/');
-        } catch (error) {
+        } catch (error) { // Error handling to be corrected (TODO)
             if (!error?.response) {
                 setErrMsg('No Server Response, try again later');
-            } else if (error.response?.status === 400) {
+            } else if (error.response?.statusCode === 500) {
                 setErrMsg('User already exists');
             } else {
                 setErrMsg('Registration Failed');

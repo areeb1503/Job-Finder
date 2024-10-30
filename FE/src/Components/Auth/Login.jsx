@@ -1,12 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
+import { EyeOutlined, EyeInvisibleOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import Cookies from 'universal-cookie';
+import { useAuth } from '../../Contexts/AuthContext.jsx';
+import axios from '../../api/axios.js';
+import { set } from 'mongoose';
 
 const cookies = new Cookies();
 
-const Login = () => {
+const LOGIN_URL = '/login';
 
+const Login = () => {
+  const { setAuth } = useAuth();
+  const emailRef = useRef();
+  const errRef = useRef();
+
+  const [errMsg, setErrMsg] = useState('');
+  const [success, setSucess] = useState(false);
   const navigate = useNavigate()
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -14,8 +24,47 @@ const Login = () => {
     password: '',
 
   });
-  const handleSubmit = (e) => {
+
+  useEffect(() => {
+    emailRef.current.focus();
+  }, [])
+
+  useEffect(() => {
+    setErrMsg('');
+  }, [formData.email, formData.password])
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
+    try {
+      const { username, password } = formData;
+      const response = await axios.post(LOGIN_URL,
+        JSON.stringify({username, password}),
+        {
+          headers : {'Content-Type':'application/json'},
+          withCredentials : true
+        }
+      );
+      console.log(response.data);
+      const accessToken = response.data?.data?.accessToken;
+      setAuth({email, accessToken})
+      setSucess(true);
+      setFormData({
+        email : '',
+        password : ''
+      })
+    } catch (error) {
+      if (!err?.response){
+        setErrMsg('No Server Response');
+      } else if (err.response?.statusCode === 400){
+        setErrMsg('Missing Username or Password');
+      } else if (err.response?.statusCode === 401){
+        setErrMsg('Unauthorized');
+      } else {
+        setErrMsg('Login Failed');
+      }
+      errRef.current.focus();
+    }
     // Send data to backend
     // console.log(formData);
     navigate('/app/');
@@ -32,12 +81,23 @@ const Login = () => {
       <form onSubmit={handleSubmit} className="bg-white m-4 p-6 rounded-lg shadow-lg w-full max-w-md">
         <h2 className="text-2xl font-bold text-center mb-4 text-orange-700">Log In</h2>
 
+        <p
+          ref={errRef}
+          className={`${errMsg ? 'flex items-center gap-2 text-red-600 font-semibold' : 'hidden'}`}
+          aria-live="assertive"
+        >
+          {errMsg && <ExclamationCircleOutlined className="text-red-600" />}
+          {errMsg}
+        </p>
+
         <div className="flex flex-col gap-4 ">
           <div>
-            <label className="block text-gray-700 font-semibold mb-1">Email</label>
+            <label htmlFor='email' className="block text-gray-700 font-semibold mb-1">Email</label>
             <input
               type="email"
               name="email"
+              id='email'
+              autoComplete='on'
               value={formData.email}
               onChange={handleChange}
               required
@@ -45,14 +105,13 @@ const Login = () => {
             />
           </div>
 
-
-
           <div>
-            <label className="block text-gray-700 font-semibold mb-1">Password</label>
+            <label htmlFor='password' className="block text-gray-700 font-semibold mb-1">Password</label>
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'} // Toggle between text and password
                 name="password"
+                id='password'
                 value={formData.password}
                 onChange={handleChange}
                 required

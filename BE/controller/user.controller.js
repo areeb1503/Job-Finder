@@ -20,7 +20,7 @@ const generateAccessAndRefreshToken = async (userId) => {
 };
 const register = async (req, res) => {
   try {
-    const { fullname, email, phoneNumber, password, role } = req.body;
+    const { fullname, email, phoneNumber, password, role, company } = req.body;
 
     // Check for missing fields
     if (!fullname || !email || !phoneNumber || !password || !role) {
@@ -40,10 +40,16 @@ const register = async (req, res) => {
     }
 
     // Upload resume and profile photo if they exist
-    const resumeFile = req.files?.resume[0]?.path;
-    const resumeUpload = resumeFile
-      ? await uploadOnCloudinary(resumeFile)
-      : null;
+    let resumeUpload = null;
+    if (
+      role === "student" &&
+      req.files &&
+      req.files.resume &&
+      req.files.resume[0]
+    ) {
+      const resumeFile = req.files?.resume[0]?.path;
+      resumeUpload = resumeFile ? await uploadOnCloudinary(resumeFile) : null;
+    }
 
     const profilePhoto = req.files?.profilePhoto[0]?.path;
     const profilePhotoUpload = profilePhoto
@@ -61,6 +67,7 @@ const register = async (req, res) => {
       role,
       resume: resumeUpload?.url || "",
       profilePhoto: profilePhotoUpload?.url || "",
+      company: role === "recruiter" ? company : null,
     });
     const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
       user._id

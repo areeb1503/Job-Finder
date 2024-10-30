@@ -30,7 +30,7 @@ const userSchema = new Schema({
 
     bio: { type: String },
     resume: { type: String, default: "" }, // URL to resume file
-    company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company' },
+    company: { type: String },
     profilePhoto: {
         type: String,
         default: ""

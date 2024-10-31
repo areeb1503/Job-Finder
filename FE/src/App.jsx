@@ -14,6 +14,10 @@ import Settings from './Components/App/Settings';
 import Welcome from './Components/App/Welcome';
 import Recommend from './Components/App/JobPages/Recommend';
 import Liked from './Components/App/JobPages/Liked';
+import RecPage from './Components/App/RecruiterPages/RecPage';
+import RecWelcome from './Components/App/RecruiterPages/RecWelcome';
+import UploadJobs from './Components/App/RecruiterPages/UploadJobs';
+import YourJobs from './Components/App/RecruiterPages/YourJobs';
 
 function App() {
   return (
@@ -26,17 +30,28 @@ function App() {
           <Route path='' element={<Home />} />
           <Route path='about' element={<About />} />
         </Route>
+
         <Route path='/login' element={<Login />} />
+
         <Route path='/signup' element={<SignUp />} />
+
         <Route path='/app/' element={<AppPage />}>{/*Page with outlet for nested routes below*/}
-          <Route path='' element={<Welcome/>}/>
-          <Route path='jobs/' element={<Jobs/>}>
-            <Route path ='' element={<Recommend/>}/>
-            <Route path = 'liked' element={<Liked/>}/>
+          <Route path='' element={<Welcome />} />
+          <Route path='jobs/' element={<Jobs />}>
+            <Route path='' element={<Recommend />} />
+            <Route path='liked' element={<Liked />} />
           </Route>
-          <Route path='resume' element={<Resume/>}/>
-          <Route path='feedback' element={<Feedback/>}/>
-          <Route path='settings' element={<Settings/>}/>
+          <Route path='resume' element={<Resume />} />
+          <Route path='feedback' element={<Feedback />} />
+          <Route path='settings' element={<Settings />} />
+        </Route>
+
+        <Route path='/recruiter/' element={<RecPage />}>
+          <Route path='' element={<RecWelcome />} />
+          <Route path='uploadjobs' element={<UploadJobs />} />
+          <Route path='yourjobs' element={<YourJobs />} />
+          <Route path='feedback' element={<Feedback />} />
+          <Route path='settings' element={<Settings />} />
         </Route>
       </Routes>
     </Router>

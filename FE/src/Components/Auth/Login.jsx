@@ -4,6 +4,7 @@ import { EyeOutlined, EyeInvisibleOutlined, ExclamationCircleOutlined } from '@a
 import Cookies from 'universal-cookie';
 import { useAuth } from '../../Contexts/AuthContext.jsx';
 import axios from '../../api/axios.js';
+import { ClipLoader } from 'react-spinners';
 
 const cookies = new Cookies();
 const LOGIN_URL = '/api/v1/users/login';
@@ -12,6 +13,7 @@ const Login = () => {
   const { setAuth } = useAuth();
   const emailRef = useRef();
   const errRef = useRef();
+  const [loading, setLoading] = useState(false);
 
   const [errMsg, setErrMsg] = useState('');
   const [success, setSuccess] = useState(false);
@@ -30,6 +32,10 @@ const Login = () => {
     setErrMsg('');
   }, [formData.email, formData.password]);
 
+  useEffect(()=>{
+    setLoading(false)
+  },[formData.email, formData.password])
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -44,8 +50,11 @@ const Login = () => {
         }
       );
       console.log(response.data);
+      if (!response.data){
+        setLoading(true);
+      }
       const accessToken = response.data?.data?.accessToken;
-      console.log(accessToken);
+      console.log("accessToken :",accessToken);
       setAuth({ email, accessToken });
       setSuccess(true);
       setFormData({
@@ -53,6 +62,10 @@ const Login = () => {
         password: '',
       });
       navigate('/app/');
+
+      if (response.data?.data?.user.role === 'recruiter'){
+        navigate('/recruiter/')
+      }
     } catch (error) {
       if (!error?.response) {
         setErrMsg('No Server Response');
@@ -132,6 +145,7 @@ const Login = () => {
             className="border border-orange-700 bg-orange-700 text-white px-5 py-2 rounded-md transition-colors duration-300 ease-out hover:bg-white hover:text-orange-700 hover:border-orange-700 mt-4 sm:col-span-2"
           >
             Log In
+            <ClipLoader color='#c2410c' loading={loading} size={30}/>
           </button>
         </div>
       </form>

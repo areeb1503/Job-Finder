@@ -106,8 +106,8 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
   try {
-    const { email, password, role } = req.body;
-    if (!email || !password || !role) {
+    const { email, password } = req.body;
+    if (!email || !password) {
       throw new ApiError(400, "Something is missing");
     }
     const user = await User.findOne({ email });

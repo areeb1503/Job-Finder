@@ -4,11 +4,9 @@ import { EyeOutlined, EyeInvisibleOutlined, ExclamationCircleOutlined } from '@a
 import Cookies from 'universal-cookie';
 import { useAuth } from '../../Contexts/AuthContext.jsx';
 import axios from '../../api/axios.js';
-import { set } from 'mongoose';
 
 const cookies = new Cookies();
-
-const LOGIN_URL = '/login';
+const LOGIN_URL = '/api/v1/users/login';
 
 const Login = () => {
   const { setAuth } = useAuth();
@@ -16,65 +14,63 @@ const Login = () => {
   const errRef = useRef();
 
   const [errMsg, setErrMsg] = useState('');
-  const [success, setSucess] = useState(false);
-  const navigate = useNavigate()
+  const [success, setSuccess] = useState(false);
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-
   });
 
   useEffect(() => {
     emailRef.current.focus();
-  }, [])
+  }, []);
 
   useEffect(() => {
     setErrMsg('');
-  }, [formData.email, formData.password])
+  }, [formData.email, formData.password]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      const { username, password } = formData;
-      const response = await axios.post(LOGIN_URL,
-        JSON.stringify({username, password}),
+      const { email, password } = formData;
+      const response = await axios.post(
+        LOGIN_URL,
+        JSON.stringify({ email, password }),
         {
-          headers : {'Content-Type':'application/json'},
-          withCredentials : true
+          headers: { 'Content-Type': 'application/json' },
+          withCredentials: true,
         }
       );
       console.log(response.data);
       const accessToken = response.data?.data?.accessToken;
-      setAuth({email, accessToken})
-      setSucess(true);
+      console.log(accessToken);
+      setAuth({ email, accessToken });
+      setSuccess(true);
       setFormData({
-        email : '',
-        password : ''
-      })
+        email: '',
+        password: '',
+      });
+      navigate('/app/');
     } catch (error) {
-      if (!err?.response){
+      if (!error?.response) {
         setErrMsg('No Server Response');
-      } else if (err.response?.statusCode === 400){
+      } else if (error.response?.status === 400) {
         setErrMsg('Missing Username or Password');
-      } else if (err.response?.statusCode === 401){
+      } else if (error.response?.status === 401) {
         setErrMsg('Unauthorized');
       } else {
         setErrMsg('Login Failed');
       }
       errRef.current.focus();
     }
-    // Send data to backend
-    // console.log(formData);
-    navigate('/app/');
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target; // Destructuring name, value and files from e.target
+    const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
-
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
@@ -97,6 +93,7 @@ const Login = () => {
               type="email"
               name="email"
               id='email'
+              ref={emailRef}
               autoComplete='on'
               value={formData.email}
               onChange={handleChange}
@@ -109,7 +106,7 @@ const Login = () => {
             <label htmlFor='password' className="block text-gray-700 font-semibold mb-1">Password</label>
             <div className="relative">
               <input
-                type={showPassword ? 'text' : 'password'} // Toggle between text and password
+                type={showPassword ? 'text' : 'password'}
                 name="password"
                 id='password'
                 value={formData.password}
@@ -119,7 +116,7 @@ const Login = () => {
               />
               <button
                 type="button"
-                onClick={() => setShowPassword(!showPassword)} // Toggle showPassword state
+                onClick={() => setShowPassword(!showPassword)}
                 className="absolute inset-y-0 right-0 flex items-center pr-3"
               >
                 {showPassword ? (
@@ -140,11 +137,10 @@ const Login = () => {
       </form>
       <h1 className='text-orange-700 font-bold'>OR</h1>
       <div className='bg-white m-4 p-6 rounded-lg shadow-lg w-full max-w-md grid grid-cols-1 gap-4 sm:grid-cols-2'>
-        <p>Don't have an account?<Link to="/signup" className='font-semibold text-orange-700 hover:text-gray-600'>Sign Up</Link></p>
+        <p>Don't have an account? <Link to="/signup" className='font-semibold text-orange-700 hover:text-gray-600'>Sign Up</Link></p>
       </div>
     </div>
   );
 };
 
-
-export default Login
+export default Login;

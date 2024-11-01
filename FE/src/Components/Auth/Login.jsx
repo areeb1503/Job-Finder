@@ -4,7 +4,7 @@ import { EyeOutlined, EyeInvisibleOutlined, ExclamationCircleOutlined } from '@a
 import Cookies from 'universal-cookie';
 import { useAuth } from '../../Contexts/AuthContext.jsx';
 import axios from '../../api/axios.js';
-import { ClipLoader } from 'react-spinners';
+
 
 const cookies = new Cookies();
 const LOGIN_URL = '/api/v1/users/login';
@@ -17,7 +17,9 @@ const Login = () => {
 
   const [errMsg, setErrMsg] = useState('');
   const [success, setSuccess] = useState(false);
+
   const navigate = useNavigate();
+
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -55,8 +57,9 @@ const Login = () => {
         setLoading(true);
       }
       const accessToken = resObject.data?.accessToken;
+      const user = resObject.data?.user
       console.log("accessToken :", accessToken);
-      setAuth({ email, accessToken });
+      setAuth({ user , accessToken });
       setSuccess(true);
       setFormData({
         email: '',
@@ -64,7 +67,7 @@ const Login = () => {
       });
       navigate('/app/');
 
-      if (resObject.data?.user.role === 'recruiter') {
+      if (user.role === 'recruiter') {
         navigate('/recruiter/')
       }
     } catch (error) {
@@ -148,7 +151,6 @@ const Login = () => {
             className="border border-orange-700 bg-orange-700 text-white px-5 py-2 rounded-md transition-colors duration-300 ease-out hover:bg-white hover:text-orange-700 hover:border-orange-700 mt-4 sm:col-span-2"
           >
             Log In
-            <ClipLoader color='#c2410c' loading={loading} size={30} />
           </button>
         </div>
       </form>

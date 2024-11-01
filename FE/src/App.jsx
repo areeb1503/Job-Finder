@@ -18,14 +18,14 @@ import RecPage from './Components/App/RecruiterPages/RecPage';
 import RecWelcome from './Components/App/RecruiterPages/RecWelcome';
 import UploadJobs from './Components/App/RecruiterPages/UploadJobs';
 import YourJobs from './Components/App/RecruiterPages/YourJobs';
+import RequireAuth from './Components/Auth/RequireAuth';
+import Unauthorized from './Components/Utils/Unauthorized';
 
 function App() {
   return (
-    <Router>
+    <>
       <ScrollToTop />
       <Routes>
-        {/*If user is not logged in we make available the landing page below, else we make available the App Page 
-        (TODO : use conditional rendering to handle this case)*/}
         <Route path='/' element={<Page />}> {/*Page with outlet for nested routes below*/}
           <Route path='' element={<Home />} />
           <Route path='about' element={<About />} />
@@ -35,26 +35,34 @@ function App() {
 
         <Route path='/signup' element={<SignUp />} />
 
-        <Route path='/app/' element={<AppPage />}>{/*Page with outlet for nested routes below*/}
-          <Route path='' element={<Welcome />} />
-          <Route path='jobs/' element={<Jobs />}>
-            <Route path='' element={<Recommend />} />
-            <Route path='liked' element={<Liked />} />
+        <Route element={<RequireAuth allowedRole={'student'} />}>
+          <Route path='/app/' element={<AppPage />}>{/*Page with outlet for nested routes below*/}
+            <Route path='' element={<Welcome />} />
+            <Route path='jobs/' element={<Jobs />}>{/*Page with outlet for nested routes below*/}
+              <Route path='' element={<Recommend />} />
+              <Route path='liked' element={<Liked />} />
+            </Route>
+            <Route path='resume' element={<Resume />} />
+            <Route path='feedback' element={<Feedback />} />
+            <Route path='settings' element={<Settings />} />
           </Route>
-          <Route path='resume' element={<Resume />} />
-          <Route path='feedback' element={<Feedback />} />
-          <Route path='settings' element={<Settings />} />
         </Route>
 
-        <Route path='/recruiter/' element={<RecPage />}>
-          <Route path='' element={<RecWelcome />} />
-          <Route path='uploadjobs' element={<UploadJobs />} />
-          <Route path='yourjobs' element={<YourJobs />} />
-          <Route path='feedback' element={<Feedback />} />
-          <Route path='settings' element={<Settings />} />
+        <Route element={<RequireAuth allowedRole={'recruiter'} />}>
+          <Route path='/recruiter/' element={<RecPage />}>{/*Page with outlet for nested routes below*/}
+            <Route path='' element={<RecWelcome />} />
+            <Route path='uploadjobs' element={<UploadJobs />} />
+            <Route path='yourjobs' element={<YourJobs />} />
+            <Route path='feedback' element={<Feedback />} />
+            <Route path='settings' element={<Settings />} />
+          </Route>
         </Route>
+
+
+        {/*Catch for unautherized access*/}
+        <Route path='/unauthorized' element={<Unauthorized />} />
       </Routes>
-    </Router>
+    </>
   );
 }
 

@@ -7,6 +7,7 @@ import Cookies from 'universal-cookie';
 import { faCheck, faTimes, faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import axios from '../../api/axios.js';
+import { useAuth } from '../../Contexts/AuthContext.jsx';
 
 
 
@@ -19,6 +20,8 @@ const SignUp = () => {
     const navigate = useNavigate();
     const fullnameRef = useRef();
     const errRef = useRef();
+
+    const { setAuth } = useAuth();
 
     const [fullnameFocus, setFullnameFocus] = useState(false);
 
@@ -111,9 +114,21 @@ const SignUp = () => {
                 withCredentials: true
             });
 
-            console.log(response.data);
-            console.log(response.data.data.accessToken);
+            const resObject = response?.data
 
+            console.log(resObject);
+            const accessToken = resObject?.data?.accessToken;
+            const user = resObject?.data?.user;
+            console.log('accessToken :', accessToken);
+
+            setAuth({ user, accessToken });
+
+            navigate('/app/');
+s
+            if (formData.role === 'recruiter'){
+                navigate('/recruiter/');
+            }
+            
             setSuccess(true);
             setFormData({
                 fullname: '',
@@ -127,15 +142,19 @@ const SignUp = () => {
             });
             setMatchPassword('');
             navigate('/app/');
-        } catch (error) { 
+s
+            if (user.role === 'recruiter'){
+                navigate('/recruiter/');
+            }
+        } catch (error) {
             if (!error.response) {
                 setErrMsg('No Server Response, try again later');
-              } else if (error.response.data.statusCode === 400) {
+            } else if (error.response.data.statusCode === 400) {
                 setErrMsg('User already exists');
-              } else {
+            } else {
                 setErrMsg('Registration Failed');
-              }
-              errRef.current.focus();
+            }
+            errRef.current.focus();
         }
     };
 

@@ -99,8 +99,9 @@ const register = async (req, res) => {
         )
       );
   } catch (error) {
-    console.error("Error:", error.message); // Log specific error details
-    throw new ApiError(500, "Error in register controller"); // Only pass the status and message
+    const statusCode = error.statusCode || 500;
+    const message = error.message || "Error in register controller";
+    return res.status(statusCode).json({ success: false, statusCode, message });
   }
 };
 
@@ -152,7 +153,9 @@ const login = async (req, res) => {
         )
       );
   } catch (error) {
-    throw new ApiError(500, "Error in login controller", error.message);
+    const statusCode = error.statusCode || 500;
+    const message = error.message || "Internal server error";
+    return res.status(statusCode).json({ success: false, statusCode, message });
   }
 };
 const logout = async (req, res) => {

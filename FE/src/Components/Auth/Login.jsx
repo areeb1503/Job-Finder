@@ -32,9 +32,9 @@ const Login = () => {
     setErrMsg('');
   }, [formData.email, formData.password]);
 
-  useEffect(()=>{
+  useEffect(() => {
     setLoading(false)
-  },[formData.email, formData.password])
+  }, [formData.email, formData.password])
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -49,12 +49,13 @@ const Login = () => {
           withCredentials: true,
         }
       );
-      console.log(response.data);
-      if (!response.data){
+      const resObject = response.data
+      console.log(resObject);
+      if (!resObject) {
         setLoading(true);
       }
-      const accessToken = response.data?.data?.accessToken;
-      console.log("accessToken :",accessToken);
+      const accessToken = resObject.data?.accessToken;
+      console.log("accessToken :", accessToken);
       setAuth({ email, accessToken });
       setSuccess(true);
       setFormData({
@@ -63,16 +64,18 @@ const Login = () => {
       });
       navigate('/app/');
 
-      if (response.data?.data?.user.role === 'recruiter'){
+      if (resObject.data?.user.role === 'recruiter') {
         navigate('/recruiter/')
       }
     } catch (error) {
-      if (!error?.response) {
+      if (!error.response) {
         setErrMsg('No Server Response');
-      } else if (error.response?.status === 400) {
+      } else if (error.response.data.statusCode === 400) {
         setErrMsg('Missing Username or Password');
-      } else if (error.response?.status === 401) {
-        setErrMsg('Unauthorized');
+      } else if (error.response.data.statusCode === 401) {
+        setErrMsg('Invalid credentials');
+      } else if (error.response.data.statusCode === 404) {
+        setErrMsg('User does not exist');
       } else {
         setErrMsg('Login Failed');
       }
@@ -145,7 +148,7 @@ const Login = () => {
             className="border border-orange-700 bg-orange-700 text-white px-5 py-2 rounded-md transition-colors duration-300 ease-out hover:bg-white hover:text-orange-700 hover:border-orange-700 mt-4 sm:col-span-2"
           >
             Log In
-            <ClipLoader color='#c2410c' loading={loading} size={30}/>
+            <ClipLoader color='#c2410c' loading={loading} size={30} />
           </button>
         </div>
       </form>

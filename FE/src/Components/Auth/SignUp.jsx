@@ -76,16 +76,16 @@ const SignUp = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-    
+
         const passCheck = PWD_REGEX.test(formData.password);
-    
+
         if (!passCheck) {
             setErrMsg("Invalid Credentials");
             return;
         }
-    
+
         const { fullname, email, phoneNumber, password, role, company, resume, profilePhoto } = formData;
-    
+
         // Creating FormData object for file uploads
         const formDataToSubmit = new FormData();
         formDataToSubmit.append('fullname', fullname);
@@ -94,26 +94,26 @@ const SignUp = () => {
         formDataToSubmit.append('password', password);
         formDataToSubmit.append('role', role);
         formDataToSubmit.append('company', company);
-    
+
         // Conditionally append resume only if the role is 'student'
         if (role === 'student' && resume) {
             formDataToSubmit.append('resume', resume);
         }
-        
+
         // Append profilePhoto if available
         if (profilePhoto) {
             formDataToSubmit.append('profilePhoto', profilePhoto);
         }
-    
+
         try {
             const response = await axios.post(REGISTER_URL, formDataToSubmit, {
                 headers: { "Content-Type": 'multipart/form-data' },
                 withCredentials: true
             });
-            
+
             console.log(response.data);
             console.log(response.data.data.accessToken);
-    
+
             setSuccess(true);
             setFormData({
                 fullname: '',
@@ -127,15 +127,15 @@ const SignUp = () => {
             });
             setMatchPassword('');
             navigate('/app/');
-        } catch (error) { // Error handling to be corrected (TODO)
-            if (!error?.response) {
+        } catch (error) { 
+            if (!error.response) {
                 setErrMsg('No Server Response, try again later');
-            } else if (error.response?.statusCode === 500) {
+              } else if (error.response.data.statusCode === 400) {
                 setErrMsg('User already exists');
-            } else {
+              } else {
                 setErrMsg('Registration Failed');
-            }
-            errRef.current.focus();
+              }
+              errRef.current.focus();
         }
     };
 

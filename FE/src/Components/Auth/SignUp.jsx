@@ -81,7 +81,6 @@ const SignUp = () => {
         e.preventDefault();
 
         const passCheck = PWD_REGEX.test(formData.password);
-
         if (!passCheck) {
             setErrMsg("Invalid Credentials");
             return;
@@ -89,7 +88,6 @@ const SignUp = () => {
 
         const { fullname, email, phoneNumber, password, role, company, resume, profilePhoto } = formData;
 
-        // Creating FormData object for file uploads
         const formDataToSubmit = new FormData();
         formDataToSubmit.append('fullname', fullname);
         formDataToSubmit.append('email', email);
@@ -98,12 +96,9 @@ const SignUp = () => {
         formDataToSubmit.append('role', role);
         formDataToSubmit.append('company', company);
 
-        // Conditionally append resume only if the role is 'student'
         if (role === 'student' && resume) {
             formDataToSubmit.append('resume', resume);
         }
-
-        // Append profilePhoto if available
         if (profilePhoto) {
             formDataToSubmit.append('profilePhoto', profilePhoto);
         }
@@ -114,21 +109,22 @@ const SignUp = () => {
                 withCredentials: true
             });
 
-            const resObject = response?.data
-
+            const resObject = response.data;
             console.log(resObject);
-            const accessToken = resObject?.data?.accessToken;
-            const user = resObject?.data?.user;
-            console.log('accessToken :', accessToken);
+            const accessToken = resObject.data?.accessToken;
+            console.log('accessToken :',accessToken)
+            const user = resObject.data?.user;
+            console.log('user :',user)
 
             setAuth({ user, accessToken });
 
-            navigate('/app/');
-s
-            if (formData.role === 'recruiter'){
+            // Navigate based on user role
+            if (user.role === 'recruiter') {
                 navigate('/recruiter/');
+            } else {
+                navigate('/app/');
             }
-            
+
             setSuccess(true);
             setFormData({
                 fullname: '',
@@ -141,11 +137,6 @@ s
                 profilePhoto: null,
             });
             setMatchPassword('');
-            navigate('/app/');
-s
-            if (user.role === 'recruiter'){
-                navigate('/recruiter/');
-            }
         } catch (error) {
             if (!error.response) {
                 setErrMsg('No Server Response, try again later');

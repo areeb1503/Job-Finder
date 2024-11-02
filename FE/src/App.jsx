@@ -21,25 +21,29 @@ import YourJobs from './Components/App/RecruiterPages/YourJobs';
 import RequireAuth from './Components/Auth/RequireAuth';
 import Unauthorized from './Components/Utils/Unauthorized';
 
+
 function App() {
   return (
     <>
       <ScrollToTop />
       <Routes>
-        <Route path='/' element={<Page />}> {/*Page with outlet for nested routes below*/}
-          <Route path='' element={<Home />} />
+        <Route path='/' element={<Page />}>
+          {/* Page with outlet for nested routes */}
+          <Route index element={<Home />} />
           <Route path='about' element={<About />} />
         </Route>
 
         <Route path='/login' element={<Login />} />
-
         <Route path='/signup' element={<SignUp />} />
 
+        {/* Protected Routes for 'student' role */}
         <Route element={<RequireAuth allowedRole={'student'} />}>
-          <Route path='/app/' element={<AppPage />}>{/*Page with outlet for nested routes below*/}
-            <Route path='' element={<Welcome />} />
-            <Route path='jobs/' element={<Jobs />}>{/*Page with outlet for nested routes below*/}
-              <Route path='' element={<Recommend />} />
+          <Route path='/app' element={<AppPage />}>
+            {/* Page with outlet for nested routes */}
+            <Route index element={<Welcome />} />
+            <Route path='jobs' element={<Jobs />}>
+              {/* Page with outlet for nested routes */}
+              <Route index element={<Recommend />} />
               <Route path='liked' element={<Liked />} />
             </Route>
             <Route path='resume' element={<Resume />} />
@@ -48,9 +52,11 @@ function App() {
           </Route>
         </Route>
 
+        {/* Protected Routes for 'recruiter' role */}
         <Route element={<RequireAuth allowedRole={'recruiter'} />}>
-          <Route path='/recruiter/' element={<RecPage />}>{/*Page with outlet for nested routes below*/}
-            <Route path='' element={<RecWelcome />} />
+          <Route path='/recruiter' element={<RecPage />}>
+            {/* Page with outlet for nested routes */}
+            <Route index element={<RecWelcome />} />
             <Route path='uploadjobs' element={<UploadJobs />} />
             <Route path='yourjobs' element={<YourJobs />} />
             <Route path='feedback' element={<Feedback />} />
@@ -58,15 +64,14 @@ function App() {
           </Route>
         </Route>
 
-
-        {/*Catch for unautherized access*/}
+        {/* Catch for unauthorized access */}
         <Route path='/unauthorized' element={<Unauthorized />} />
       </Routes>
     </>
   );
 }
 
-export default App
+export default App;
 
 /*
 localStorage.setItem("User", JSON.stringify(token))

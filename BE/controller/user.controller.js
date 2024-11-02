@@ -20,6 +20,7 @@ const generateAccessAndRefreshToken = async (userId) => {
 };
 const register = async (req, res) => {
   try {
+    console.log("Registering user...");
     const { fullname, email, phoneNumber, password, role, company } = req.body;
 
     // Check for missing fields
@@ -27,38 +28,30 @@ const register = async (req, res) => {
       throw new ApiError(400, "Please fill in all fields");
     }
 
-    // Check if the user already exists in the database
-    const existingUser = await User.findOne({
-      $or: [{ email }, { phoneNumber }],
-    });
-
+    // Check if user exists
+    const existingUser = await User.findOne({ $or: [{ email }, { phoneNumber }] });
     if (existingUser) {
-      console.log(
-        `User already exists with email: ${email} or phone number: ${phoneNumber}`
-      );
+      console.log(`User already exists: ${email} or ${phoneNumber}`);
       throw new ApiError(400, "User already exists");
     }
 
-    // Upload resume and profile photo if they exist
+    // Handle file uploads
     let resumeUpload = null;
-    if (
-      role === "student" &&
-      req.files &&
-      req.files.resume &&
-      req.files.resume[0]
-    ) {
-      const resumeFile = req.files?.resume[0]?.path;
-      resumeUpload = resumeFile ? await uploadOnCloudinary(resumeFile) : null;
+    if (role === "student" && req.files?.resume?.[0]) {
+      console.log("Uploading resume...");
+      const resumeFile = req.files.resume[0].path;
+      resumeUpload = await uploadOnCloudinary(resumeFile);
     }
 
-    const profilePhoto = req.files?.profilePhoto[0]?.path;
-    const profilePhotoUpload = profilePhoto
-      ? await uploadOnCloudinary(profilePhoto)
-      : null;
+    let profilePhotoUpload = null;
+    if (req.files?.profilePhoto?.[0]) {
+      console.log("Uploading profile photo...");
+      const profilePhotoFile = req.files.profilePhoto[0].path;
+      profilePhotoUpload = await uploadOnCloudinary(profilePhotoFile);
+    }
 
+    // Hash password and create user
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Create the user in the database
     const user = await User.create({
       fullname,
       email,
@@ -69,18 +62,13 @@ const register = async (req, res) => {
       profilePhoto: profilePhotoUpload?.url || "",
       company: role === "recruiter" ? company : null,
     });
-    const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
-      user._id
-    );
-    // Fetch the created user without the password
-    const createdUser = await User.findById(user._id).select("-password");
+    console.log("User created:", user);
 
-    if (!createdUser) {
-      throw new ApiError(
-        500,
-        "Something went wrong while registering the user"
-      );
-    }
+    // Generate tokens
+    const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id);
+
+    // Set tokens and return response
+    const createdUser = await User.findById(user._id).select("-password");
     const options = {
       httpOnly: true,
       secure: true,
@@ -91,19 +79,16 @@ const register = async (req, res) => {
       .status(201)
       .cookie("accessToken", accessToken, options)
       .cookie("refreshToken", refreshToken, options)
-      .json(
-        new ApiResponse(
-          200,
-          { user: createdUser, accessToken },
-          "User registered successfully"
-        )
-      );
+      .json(new ApiResponse(200, { user: createdUser, accessToken }, "User registered successfully"));
   } catch (error) {
+    console.error("Error in register controller:", error);
     const statusCode = error.statusCode || 500;
     const message = error.message || "Error in register controller";
     return res.status(statusCode).json({ success: false, statusCode, message });
   }
 };
+
+
 
 const login = async (req, res) => {
   try {

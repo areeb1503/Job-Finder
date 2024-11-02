@@ -80,45 +80,33 @@ const SignUp = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        const passCheck = PWD_REGEX.test(formData.password);
-        if (!passCheck) {
+        // Validate password before proceeding
+        if (!PWD_REGEX.test(formData.password)) {
             setErrMsg("Invalid Credentials");
             return;
         }
 
-        const { fullname, email, phoneNumber, password, role, company, resume, profilePhoto } = formData;
-
-        const formDataToSubmit = new FormData();
-        formDataToSubmit.append('fullname', fullname);
-        formDataToSubmit.append('email', email);
-        formDataToSubmit.append('phoneNumber', phoneNumber);
-        formDataToSubmit.append('password', password);
-        formDataToSubmit.append('role', role);
-        formDataToSubmit.append('company', company);
-
-        if (role === 'student' && resume) {
-            formDataToSubmit.append('resume', resume);
-        }
-        if (profilePhoto) {
-            formDataToSubmit.append('profilePhoto', profilePhoto);
-        }
-
         try {
+            const formDataToSubmit = new FormData();
+            for (const [key, value] of Object.entries(formData)) {
+                if (key === 'resume' || key === 'profilePhoto') {
+                    if (value) formDataToSubmit.append(key, value);
+                } else {
+                    formDataToSubmit.append(key, value);
+                }
+            }
+
             const response = await axios.post(REGISTER_URL, formDataToSubmit, {
-                headers: { "Content-Type": 'multipart/form-data' },
+                headers: { "Content-Type": "multipart/form-data" },
                 withCredentials: true
             });
 
             const resObject = response.data;
-            console.log(resObject);
             const accessToken = resObject.data?.accessToken;
-            console.log('accessToken :',accessToken)
             const user = resObject.data?.user;
-            console.log('user :',user)
 
             setAuth({ user, accessToken });
 
-            // Navigate based on user role
             if (user.role === 'recruiter') {
                 navigate('/recruiter/');
             } else {
@@ -137,7 +125,9 @@ const SignUp = () => {
                 profilePhoto: null,
             });
             setMatchPassword('');
+
         } catch (error) {
+            console.error("Error during registration:", error); // Log error for debugging
             if (!error.response) {
                 setErrMsg('No Server Response, try again later');
             } else if (error.response.data.statusCode === 400) {

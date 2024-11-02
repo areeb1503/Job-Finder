@@ -4,6 +4,7 @@ import { EyeOutlined, EyeInvisibleOutlined, ExclamationCircleOutlined } from '@a
 import Cookies from 'universal-cookie';
 import { useAuth } from '../../Contexts/AuthContext.jsx';
 import axios from '../../api/axios.js';
+import logo from '../../assets/briefcase.png';
 
 
 const cookies = new Cookies();
@@ -59,7 +60,7 @@ const Login = () => {
       const accessToken = resObject.data?.accessToken;
       const user = resObject.data?.user
       console.log("accessToken :", accessToken);
-      setAuth({ user , accessToken });
+      setAuth({ user, accessToken });
       setSuccess(true);
       setFormData({
         email: '',
@@ -158,6 +159,27 @@ const Login = () => {
       <div className='bg-white m-4 p-6 rounded-lg shadow-lg w-full max-w-md grid grid-cols-1 gap-4 sm:grid-cols-2'>
         <p>Don't have an account? <Link to="/signup" className='font-semibold text-orange-700 hover:text-gray-600'>Sign Up</Link></p>
       </div>
+      <footer className="w-full flex flex-col items-center bg-white py-6 shadow-t-md border-t border-gray-200 mt-8">
+        <div className="flex items-center justify-center mb-4 md:mb-0">
+          <Link to="/" className="flex flex-col items-center">
+            <img
+              src={logo}
+              className="h-16 mb-2"
+              alt="Logo"
+            />
+            <p className="text-orange-700 font-extrabold tracking-wide text-lg">KAAM</p>
+          </Link>
+        </div>
+        <div className="flex gap-8 text-center text-orange-700 font-medium">
+          <Link to="/" className="hover:text-gray-600 hover:underline transition-all duration-200">
+            Home
+          </Link>
+          <Link to="/about" className="hover:text-gray-600 hover:underline transition-all duration-200">
+            About
+          </Link>
+        </div>
+      </footer>
+
     </div>
   );
 };

@@ -9,6 +9,7 @@ import { SelectedJobsProvider } from '../../Contexts/SelectedJobsContext';
 import { FetchedJobsProvider } from '../../Contexts/FetchedJobsContext';
 import { useSelectedJobs } from '../../Contexts/SelectedJobsContext';
 import { useFetchedJobs } from '../../Contexts/FetchedJobsContext';
+import { useAuth } from '../../Contexts/AuthContext.jsx';
 
 // dotenv.config({
 //   path: '../../../.env',
@@ -23,6 +24,7 @@ const ChatBot = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const { auth } = useAuth();
 
   useEffect(() => {
     if (!selectedJobs) {
@@ -81,7 +83,8 @@ const ChatBot = () => {
       const display_name = selectedJobs ? filteredJob.company.display_name : '';
       const contract_type = selectedJobs ? filteredJob.contract_type : '';
       const location = selectedJobs ? filteredJob.location.display_name : '';
-      const AIprompt = `${KaamAI} respond to following prompt: ${title},${description},${display_name},${contract_type},${location} ${prompt}`;
+      const username = auth?.user?.fullname;
+      const AIprompt = `${KaamAI} respond to following prompt: ${title},${description},${display_name},${contract_type},${location},my name is :${username} ${prompt}`;
       const result = await model.generateContent(AIprompt);
       return result.response.text();
     } catch (error) {

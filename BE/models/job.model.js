@@ -9,42 +9,26 @@ const jobSchema=new Schema({
         type:String,
         required:true
     },
+    created_by:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        
+
+    },
     company:{
-        type:Schema.Types.ObjectId,
-        ref:'Company',
+        type:String,
         required:true
     },
     description:{
         type:String,
-        required:true
-    },
-    salary:{
-        type:Number,
-        required:true
-    },
-    requiredSkills:[{
-        type:String,
-        required:true
-    }],
-    experienceLevel:{
-        type:Number,
         required:true,
+        trim: true
     },
-    openings: {
-        type: Number,
+
+    job_link:{
+        type: String,
         required: true
     },
-    created_by: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
-    },
-    applications: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Application',
-        }
-    ],
     likes: [
         {
             type: mongoose.Schema.Types.ObjectId,
@@ -52,4 +36,4 @@ const jobSchema=new Schema({
         },
     ],
 },{timestamps:true})
-export const Job=mongoose.Schema('Job',jobSchema)
+export const Job=mongoose.model('Job',jobSchema)

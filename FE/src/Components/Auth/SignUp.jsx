@@ -141,18 +141,29 @@ const SignUp = () => {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
+        <div className="relative flex flex-col items-center justify-center min-h-screen bg-gray-50 px-6 sm:px-8 md:px-12">
+            <img
+                src="https://www.svgrepo.com/show/290023/job-search.svg"
+                alt="Job Search Left"
+                className="absolute left-0 top-1/2 transform -translate-y-1/2 w-32 h-32 opacity-30 text-orange-700 ml-4 sm:ml-8 lg:ml-16 hidden sm:block"
+            />
+
+            {/* Right Business Job Search SVG */}
+            <img
+                src="https://www.svgrepo.com/show/122266/business-job-search-symbol.svg"
+                alt="Business Job Search Right"
+                className="absolute right-0 top-1/2 transform -translate-y-1/2 w-32 h-32 opacity-30 text-orange-700 mr-4 sm:mr-8 lg:mr-16 hidden sm:block"
+            />
             <form onSubmit={handleSubmit} className="bg-white m-4 p-6 rounded-lg shadow-lg w-full max-w-md">
                 <h2 className="text-2xl font-bold text-center mb-4 text-orange-700">Sign Up</h2>
 
-                <p
-                    ref={errRef}
-                    className={`${errMsg ? 'flex items-center gap-2 text-red-600 font-semibold' : 'hidden'}`}
-                    aria-live="assertive"
-                >
-                    {errMsg && <ExclamationCircleOutlined className="text-red-600" />}
-                    {errMsg}
-                </p>
+                {errMsg && (
+                    <p ref={errRef} className="flex items-center gap-2 text-red-600 font-semibold" aria-live="assertive">
+                        <ExclamationCircleOutlined className="text-red-600" />
+                        {errMsg}
+                    </p>
+                )}
+
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
@@ -349,22 +360,16 @@ const SignUp = () => {
 
                 </div>
             </form>
-            <h1 className='text-orange-700 font-bold'>OR</h1>
-            <div className='bg-white m-4 p-6 rounded-lg shadow-lg w-full max-w-md grid grid-cols-1 gap-4 sm:grid-cols-2'>
-                <p>Already have an account?<Link to="/login" className='font-semibold text-orange-700 hover:text-gray-600'>Log In</Link></p>
-            </div>
-            <footer className="w-full flex flex-col items-center bg-white py-6 shadow-t-md border-t border-gray-200 mt-8">
-                <div className="flex items-center justify-center mb-4 md:mb-0">
-                    <Link to="/" className="flex flex-col items-center">
-                        <img
-                            src={logo}
-                            className="h-16 mb-2"
-                            alt="Logo"
-                        />
-                        <p className="text-orange-700 font-extrabold tracking-wide text-lg">KAAM</p>
+            <div className="text-center">
+                <p className="text-sm text-gray-600">
+                    Don't have an account?{' '}
+                    <Link to="/login" className="font-semibold text-orange-700 hover:text-gray-600 transition">
+                        Log In
                     </Link>
-                </div>
-                <div className="flex gap-8 text-center text-orange-700 font-medium">
+                </p>
+            </div>
+            <footer className="mt-8 text-center text-gray-600 space-y-2">
+                <div className="flex justify-center space-x-8">
                     <Link to="/" className="hover:text-gray-600 hover:underline transition-all duration-200">
                         Home
                     </Link>
@@ -372,10 +377,19 @@ const SignUp = () => {
                         About
                     </Link>
                 </div>
+                <div className="flex justify-center items-center space-x-2">
+                    <img src={logo} alt="KAAM Logo" className="h-12" />
+                    <p className="text-orange-700 font-extrabold text-lg">KAAM</p>
+                </div>
             </footer>
-
         </div>
     );
 };
 
 export default SignUp;
+
+
+
+{/*
+    
+    */}

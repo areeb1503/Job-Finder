@@ -140,7 +140,7 @@ function Recommend() {
                 e.currentTarget.style.borderColor = '#C05621'; // Original color
               }}
             > {/* Changed button color */}
-              Apply
+              Get more Information
             </Button>
           </a>
         </Card>

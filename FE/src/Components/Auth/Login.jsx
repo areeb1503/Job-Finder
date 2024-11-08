@@ -6,7 +6,6 @@ import { useAuth } from '../../Contexts/AuthContext.jsx';
 import axios from '../../api/axios.js';
 import logo from '../../assets/briefcase.png';
 
-
 const cookies = new Cookies();
 const LOGIN_URL = '/api/v1/users/login';
 
@@ -36,8 +35,8 @@ const Login = () => {
   }, [formData.email, formData.password]);
 
   useEffect(() => {
-    setLoading(false)
-  }, [formData.email, formData.password])
+    setLoading(false);
+  }, [formData.email, formData.password]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -52,14 +51,14 @@ const Login = () => {
           withCredentials: true,
         }
       );
-      const resObject = response.data
+      const resObject = response.data;
       console.log(resObject);
       if (!resObject) {
         setLoading(true);
       }
       const accessToken = resObject.data?.accessToken;
-      const user = resObject.data?.user
-      console.log("accessToken :", accessToken);
+      const user = resObject.data?.user;
+      console.log('accessToken:', accessToken);
       setAuth({ user, accessToken });
       setSuccess(true);
       setFormData({
@@ -69,7 +68,7 @@ const Login = () => {
       navigate('/app/');
 
       if (user.role === 'recruiter') {
-        navigate('/recruiter/')
+        navigate('/recruiter/');
       }
     } catch (error) {
       if (!error.response) {
@@ -93,93 +92,112 @@ const Login = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
-      <form onSubmit={handleSubmit} className="bg-white m-4 p-6 rounded-lg shadow-lg w-full max-w-md">
-        <h2 className="text-2xl font-bold text-center mb-4 text-orange-700">Log In</h2>
+    <div className="relative flex items-center justify-center min-h-screen bg-gray-50 px-6 sm:px-8 md:px-12">
+      {/* Left Job Search SVG */}
+      <img
+        src="https://www.svgrepo.com/show/290023/job-search.svg"
+        alt="Job Search Left"
+        className="absolute left-0 top-1/2 transform -translate-y-1/2 w-32 h-32 opacity-30 text-orange-700 ml-4 sm:ml-8 lg:ml-16 hidden sm:block"
+      />
 
-        <p
-          ref={errRef}
-          className={`${errMsg ? 'flex items-center gap-2 text-red-600 font-semibold' : 'hidden'}`}
-          aria-live="assertive"
-        >
-          {errMsg && <ExclamationCircleOutlined className="text-red-600" />}
-          {errMsg}
-        </p>
+      {/* Right Business Job Search SVG */}
+      <img
+        src="https://www.svgrepo.com/show/122266/business-job-search-symbol.svg"
+        alt="Business Job Search Right"
+        className="absolute right-0 top-1/2 transform -translate-y-1/2 w-32 h-32 opacity-30 text-orange-700 mr-4 sm:mr-8 lg:mr-16 hidden sm:block"
+      />
 
-        <div className="flex flex-col gap-4 ">
-          <div>
-            <label htmlFor='email' className="block text-gray-700 font-semibold mb-1">Email</label>
+      <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-lg space-y-6 relative z-10">
+        <div className="relative flex justify-center">
+          <h2 className="text-2xl font-bold text-center text-orange-700">Log In</h2>
+        </div>
+
+        {errMsg && (
+          <p
+            ref={errRef}
+            className="flex items-center gap-2 text-red-600 font-semibold"
+            aria-live="assertive"
+          >
+            <ExclamationCircleOutlined className="text-red-600" />
+            {errMsg}
+          </p>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-1">
+            <label htmlFor="email" className="block text-sm font-semibold text-gray-700">Email</label>
             <input
               type="email"
               name="email"
-              id='email'
+              id="email"
               ref={emailRef}
-              autoComplete='on'
+              autoComplete="on"
               value={formData.email}
               onChange={handleChange}
               required
-              className="border border-gray-300 px-4 py-2 rounded-md w-full focus:border-orange-700 focus:ring-1 focus:ring-orange-700"
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-700 focus:border-orange-700 transition"
             />
           </div>
 
-          <div>
-            <label htmlFor='password' className="block text-gray-700 font-semibold mb-1">Password</label>
+          <div className="space-y-1">
+            <label htmlFor="password" className="block text-sm font-semibold text-gray-700">Password</label>
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
                 name="password"
-                id='password'
+                id="password"
                 value={formData.password}
                 onChange={handleChange}
                 required
-                className="border border-gray-300 px-4 py-2 rounded-md w-full focus:border-orange-700 focus:ring-1 focus:ring-orange-700"
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-700 focus:border-orange-700 transition"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 flex items-center pr-3"
+                className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500"
               >
                 {showPassword ? (
-                  <EyeInvisibleOutlined className="text-gray-500" />
+                  <EyeInvisibleOutlined />
                 ) : (
-                  <EyeOutlined className="text-gray-500" />
+                  <EyeOutlined />
                 )}
               </button>
             </div>
           </div>
+
           <button
             type="submit"
-            className="border border-orange-700 bg-orange-700 text-white px-5 py-2 rounded-md transition-colors duration-300 ease-out hover:bg-white hover:text-orange-700 hover:border-orange-700 mt-4 sm:col-span-2"
+            disabled={loading}
+            className="w-full px-5 py-2 bg-orange-700 text-white rounded-md hover:bg-white hover:text-orange-700 border border-orange-700 transition-all duration-300 ease-out focus:ring-2 focus:ring-orange-700"
           >
-            Log In
+            {loading ? 'Logging In...' : 'Log In'}
           </button>
-        </div>
-      </form>
-      <h1 className='text-orange-700 font-bold'>OR</h1>
-      <div className='bg-white m-4 p-6 rounded-lg shadow-lg w-full max-w-md grid grid-cols-1 gap-4 sm:grid-cols-2'>
-        <p>Don't have an account? <Link to="/signup" className='font-semibold text-orange-700 hover:text-gray-600'>Sign Up</Link></p>
-      </div>
-      <footer className="w-full flex flex-col items-center bg-white py-6 shadow-t-md border-t border-gray-200 mt-8">
-        <div className="flex items-center justify-center mb-4 md:mb-0">
-          <Link to="/" className="flex flex-col items-center">
-            <img
-              src={logo}
-              className="h-16 mb-2"
-              alt="Logo"
-            />
-            <p className="text-orange-700 font-extrabold tracking-wide text-lg">KAAM</p>
-          </Link>
-        </div>
-        <div className="flex gap-8 text-center text-orange-700 font-medium">
-          <Link to="/" className="hover:text-gray-600 hover:underline transition-all duration-200">
-            Home
-          </Link>
-          <Link to="/about" className="hover:text-gray-600 hover:underline transition-all duration-200">
-            About
-          </Link>
-        </div>
-      </footer>
+        </form>
 
+        <div className="text-center">
+          <p className="text-sm text-gray-600">
+            Don't have an account?{' '}
+            <Link to="/signup" className="font-semibold text-orange-700 hover:text-gray-600 transition">
+              Sign Up
+            </Link>
+          </p>
+        </div>
+
+        <footer className="mt-8 text-center text-gray-600 space-y-2">
+          <div className="flex justify-center space-x-8">
+            <Link to="/" className="hover:text-gray-600 hover:underline transition-all duration-200">
+              Home
+            </Link>
+            <Link to="/about" className="hover:text-gray-600 hover:underline transition-all duration-200">
+              About
+            </Link>
+          </div>
+          <div className="flex justify-center items-center space-x-2">
+            <img src={logo} alt="KAAM Logo" className="h-12" />
+            <p className="text-orange-700 font-extrabold text-lg">KAAM</p>
+          </div>
+        </footer>
+      </div>
     </div>
   );
 };

@@ -1,8 +1,13 @@
 import { Link, NavLink } from 'react-router-dom';
 import { FileTextOutlined, SolutionOutlined, CommentOutlined, SettingOutlined } from '@ant-design/icons'; // importing relevant icons from antd
 import logo from '../../../assets/briefcase.png';
+import { useAuth } from '../../../Contexts/AuthContext.jsx';
+import { Avatar } from 'antd';
+import { UserOutlined } from '@ant-design/icons';
 
 const Sidebar = () => {
+    const { auth } = useAuth();
+    const profile = auth?.user?.profilePhoto;
     return (
         <aside className="fixed top-0 left-0 h-screen w-64 shadow-lg z-50 bg-white border-r border-gray-200">
             <div className="flex flex-col h-full py-6">
@@ -66,8 +71,19 @@ const Sidebar = () => {
                         </li>
                     </ul>
                 </nav>
+
+                {/* Avatar at the bottom with modern styling */}
+                <div className="flex justify-center mt-6 mb-4">
+                    <Avatar
+                        size={48}
+                        src={profile ? profile : undefined} // Use profile image if available, otherwise undefined
+                        icon={profile ? null : <UserOutlined />} // Show icon if no profile is provided
+                        className="border-2 border-orange-700 shadow-lg rounded-full transition-all duration-300 ease-in-out hover:shadow-xl hover:border-orange-500"
+                    />
+                </div>
             </div>
         </aside>
+
     );
 };
 

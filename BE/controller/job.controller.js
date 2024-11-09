@@ -3,9 +3,9 @@ import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import fs from "fs";
-import { createRequire } from 'module';
+import { createRequire } from "module";
 const require = createRequire(import.meta.url);
-const pdfParse = require('pdf-parse');
+const pdfParse = require("pdf-parse");
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import axios from "axios";
@@ -74,9 +74,9 @@ export const likeUnlikeJobs = async (req, res) => {
 
 export const extractJobPosting = async (req, res) => {
   try {
-    const userResumeUrl = req.user?.resume; 
+    const userResumeUrl = req.user?.resume;
     console.log("User resume URL:", userResumeUrl);
-    
+
     if (!userResumeUrl) {
       return res
         .status(400)
@@ -91,7 +91,7 @@ export const extractJobPosting = async (req, res) => {
     // Parse the PDF content using pdf-parse
     const pdfData = await pdfParse(response.data);
     const resumeText = pdfData.text;
-    
+
     // Extract skills from the parsed resume text
     const skills = await extractSkills(resumeText);
 
@@ -116,11 +116,10 @@ const extractSkills = async (resumeText) => {
 
     const prompt = `Generate one line string separated by spaces of job-related skills from the following resume: ${resumeText};`;
     const result = await model.generateContent(prompt);
-    const skills = result.response.text(); 
+    const skills = result.response.text();
     return skills;
   } catch (error) {
     console.error("Error extracting skills:", error);
     throw new Error("Skill extraction failed");
   }
 };
-

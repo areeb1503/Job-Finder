@@ -2,7 +2,6 @@ import { Job } from "../models/job.model.js";
 import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/apiResponse.js";
-import fs from "fs";
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 const pdfParse = require("pdf-parse");
@@ -11,7 +10,8 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import axios from "axios";
 export const postJob = async (req, res) => {
   try {
-    const { title, location, company, description, job_link } = req.body;
+    const { title, location, company, description, job_link, skillKeywords } =
+      req.body;
     if (!title || !location || !company || !description || !job_link) {
       throw new ApiError(400, "Please fill in all fields");
     }
@@ -27,7 +27,9 @@ export const postJob = async (req, res) => {
       description,
       job_link,
       created_by: userId,
+      skillKeywords,
     });
+    await job.save();
     return res
       .status(200)
       .json(new ApiResponse(200, job, "New Job created successfully."));
@@ -71,6 +73,36 @@ export const likeUnlikeJobs = async (req, res) => {
     throw new ApiError(500, "Error in like post controller");
   }
 };
+export const getResumetext=async(req,res)=>{
+  try {
+    const userResumeUrl = req.user?.resume;
+      console.log("User resume URL:", userResumeUrl);
+  
+      if (!userResumeUrl) {
+        return res
+          .status(400)
+          .json({ message: "No resume URL found for the user" });
+      }
+  
+      const response = await axios.get(userResumeUrl, {
+        responseType: "arraybuffer",
+      });
+  
+      const pdfData = await pdfParse(response.data);
+      const resumeText = pdfData.text;
+      return res
+       .status(200)
+       .json(
+          new ApiResponse(200, resumeText, "Resume text extracted successfully")
+        );
+  } catch (error) {
+    const statusCode = error.statusCode || 500;
+    const message = error.message || "Error in resume text controller";
+    return res.status(statusCode).json({ success: false, statusCode, message });
+    
+  }
+
+}
 
 export const extractJobPosting = async (req, res) => {
   try {
@@ -83,31 +115,39 @@ export const extractJobPosting = async (req, res) => {
         .json({ message: "No resume URL found for the user" });
     }
 
-    // Fetch the PDF file from Cloudinary
     const response = await axios.get(userResumeUrl, {
       responseType: "arraybuffer",
     });
 
-    // Parse the PDF content using pdf-parse
     const pdfData = await pdfParse(response.data);
     const resumeText = pdfData.text;
 
-    // Extract skills from the parsed resume text
     const skills = await extractSkills(resumeText);
 
     console.log("Extracted Skills:", skills);
+    const adzunaJobs = await getJobPostingsFromAdzuna(skills);
+
+    const localJobs = await getJobPostingsFromDatabase(skills);
+
+    const combinedJobs = [...localJobs, ...adzunaJobs];
+
     return res
       .status(200)
-      .json(new ApiResponse(200, skills, "Skills extracted successfully"));
+      .json(
+        new ApiResponse(
+          200,
+          combinedJobs,
+          "Job postings retrieved successfully"
+        )
+      );
   } catch (err) {
-    console.error("Error Extracting Skills:", err);
+    console.error("Failed to retrieve job postings", err);
     return res
       .status(500)
-      .json({ message: "Error extracting skills from resume" });
+      .json({ message: "Error fetching job postings from Adzuna" });
   }
 };
 
-// Function to extract skills from the parsed resume text
 const extractSkills = async (resumeText) => {
   try {
     const geminiApiKey = process.env.GEMINI_API_KEY;
@@ -121,5 +161,43 @@ const extractSkills = async (resumeText) => {
   } catch (error) {
     console.error("Error extracting skills:", error);
     throw new Error("Skill extraction failed");
+  }
+};
+const getJobPostingsFromAdzuna = async (skills) => {
+  try {
+    const adzunaAppId = process.env.ADZUNA_APP_ID;
+    const adzunaAppKey = process.env.ADZUNA_APP_KEY;
+    const encodedSkills = skills;
+
+    const response = await axios.get(
+      `http://api.adzuna.com/v1/api/jobs/in/search/1`,
+      {
+        params: {
+          app_id: adzunaAppId,
+          app_key: adzunaAppKey,
+          what_or: encodedSkills,
+          results_per_page: 10,
+        },
+      }
+    );
+
+    return response.data.results;
+  } catch (error) {
+    console.error("Error fetching job postings from Adzuna:", error);
+    throw new Error("Failed to retrieve job postings");
+  }
+};
+const getJobPostingsFromDatabase = async (skills) => {
+  try {
+    console.log("Skills type:", typeof skills);
+    const skillKeywords =typeof skills === "string"? skills.split(" ").map((skill) => skill.toLowerCase()) : Array.isArray(skills)? skills.map((skill) => skill.toLowerCase()) : [];
+    const jobs = await Job.find({
+      skills: { $in: skillKeywords },
+    });
+
+    return jobs;
+  } catch (error) {
+    console.error("Error fetching job postings from database:", error);
+    throw new Error("Failed to retrieve job postings from database");
   }
 };

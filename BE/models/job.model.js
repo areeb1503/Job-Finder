@@ -35,5 +35,10 @@ const jobSchema=new Schema({
             ref: "User",
         },
     ],
+    skillKeywords:[
+        {
+            type: String,
+        }
+    ]
 },{timestamps:true})
 export const Job=mongoose.model('Job',jobSchema)

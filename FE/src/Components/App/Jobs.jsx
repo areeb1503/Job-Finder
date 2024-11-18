@@ -99,7 +99,7 @@ const ChatBot = () => {
       <div className="bg-white p-4 shadow-lg flex items-center space-x-2 border-b border-gray-300">
         <RobotOutlined className="text-orange-700 text-3xl" />
         <span className="text-gray-700 text-2xl font-semibold hover:text-orange-700 transition-colors">
-          Ask Kaam AI
+          Kaam AI
         </span>
       </div>
 

@@ -22,51 +22,50 @@ import RequireAuth from './Components/Auth/RequireAuth';
 import Unauthorized from './Components/Utils/Unauthorized';
 
 
+
 function App() {
   return (
     <>
       <ScrollToTop />
       <Routes>
-        <Route path='/' element={<Page />}>
-          {/* Page with outlet for nested routes */}
+        {/* Public routes */}
+        <Route path="/" element={<Page />}>
           <Route index element={<Home />} />
-          <Route path='about' element={<About />} />
+          <Route path="about" element={<About />} />
         </Route>
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<SignUp />} />
 
-        <Route path='/login' element={<Login />} />
-        <Route path='/signup' element={<SignUp />} />
 
-        {/* Protected Routes for 'student' role */}
-        <Route element={<RequireAuth allowedRole={'student'} />}>
-          <Route path='/app' element={<AppPage />}>
-            {/* Page with outlet for nested routes */}
+        {/* Student role routes */}
+        <Route element={<RequireAuth allowedRole="student" />}>
+          <Route path="/app" element={<AppPage />}>
             <Route index element={<Welcome />} />
-            <Route path='jobs' element={<Jobs />}>
-              {/* Page with outlet for nested routes */}
+            <Route path="jobs" element={<Jobs />}>
               <Route index element={<Recommend />} />
-              <Route path='liked' element={<Liked />} />
+              <Route path="liked" element={<Liked />} />
             </Route>
-            <Route path='resume' element={<Resume />} />
-            <Route path='feedback' element={<Feedback />} />
-            <Route path='settings' element={<Settings />} />
+            <Route path="resume" element={<Resume />} />
+            <Route path="feedback" element={<Feedback />} />
+            <Route path="settings" element={<Settings />} />
           </Route>
         </Route>
 
-        {/* Protected Routes for 'recruiter' role */}
-        <Route element={<RequireAuth allowedRole={'recruiter'} />}>
-          <Route path='/recruiter' element={<RecPage />}>
-            {/* Page with outlet for nested routes */}
+        {/* Recruiter role routes */}
+        <Route element={<RequireAuth allowedRole="recruiter" />}>
+          <Route path="/recruiter" element={<RecPage />}>
             <Route index element={<RecWelcome />} />
-            <Route path='uploadjobs' element={<UploadJobs />} />
-            <Route path='yourjobs' element={<YourJobs />} />
-            <Route path='feedback' element={<Feedback />} />
-            <Route path='settings' element={<Settings />} />
+            <Route path="uploadjobs" element={<UploadJobs />} />
+            <Route path="yourjobs" element={<YourJobs />} />
+            <Route path="feedback" element={<Feedback />} />
+            <Route path="settings" element={<Settings />} />
           </Route>
         </Route>
 
-        {/* Catch for unauthorized access */}
-        <Route path='/unauthorized' element={<Unauthorized />} />
-      </Routes>
+        {/* Unauthorized */}
+        <Route path="/unauthorized" element={<Unauthorized />} />
+
+      </Routes>;
     </>
   );
 }

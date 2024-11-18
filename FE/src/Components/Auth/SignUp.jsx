@@ -104,9 +104,10 @@ const SignUp = () => {
 
             const resObject = response.data;
             const accessToken = resObject.data?.accessToken;
+            const refreshToken = resObject.data?.refreshToken;
             const user = resObject.data?.user;
 
-            setAuth({ user, accessToken });
+            setAuth({ user, accessToken, refreshToken });
 
             if (user.role === 'recruiter') {
                 navigate('/recruiter/');

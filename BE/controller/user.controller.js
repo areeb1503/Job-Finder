@@ -79,7 +79,7 @@ const register = async (req, res) => {
       .status(201)
       .cookie("accessToken", accessToken, options)
       .cookie("refreshToken", refreshToken, options)
-      .json(new ApiResponse(200, { user: createdUser, accessToken }, "User registered successfully"));
+      .json(new ApiResponse(200, { user: createdUser, accessToken, refreshToken }, "User registered successfully"));
   } catch (error) {
     console.error("Error in register controller:", error);
     const statusCode = error.statusCode || 500;
@@ -132,7 +132,7 @@ const login = async (req, res) => {
           {
             user: loggedInUser,
             accessToken,
-            // refreshToken,
+            refreshToken,
           },
           "User Logged In Successfully."
         )

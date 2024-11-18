@@ -111,12 +111,12 @@ export const FetchedJobsProvider = ({ children }) => {
 
   useEffect(() => {
     try {
-      //fetch Job data from the backend.
+      //fetch Job data from the backend. // NOTE- Use axiosPrivate from useAxiosPrivate to send any request inside the app.
       setJobs(dummyData.results);
     } catch (error) {
       console.log("Error fetching Job data", error);
       setErr(true);
-    }
+    } 
   }, [])
 
   return (

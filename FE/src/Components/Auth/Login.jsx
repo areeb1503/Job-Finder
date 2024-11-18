@@ -57,9 +57,11 @@ const Login = () => {
         setLoading(true);
       }
       const accessToken = resObject.data?.accessToken;
+      const refreshToken = resObject.data?.refreshToken;
       const user = resObject.data?.user;
       console.log('accessToken:', accessToken);
-      setAuth({ user, accessToken });
+      console.log('refreshToken:', refreshToken);
+      setAuth({ user, accessToken, refreshToken });
       setSuccess(true);
       setFormData({
         email: '',

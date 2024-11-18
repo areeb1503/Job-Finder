@@ -1,31 +1,30 @@
 import express from "express";
 import cookieParser from "cookie-parser";
-import cors from 'cors';
+import cors from "cors";
 
 const app = express();
 
-app.use(cors({
-    origin : process.env.CORS_ORIGIN,
-    credentials : true
-}))
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGIN,
+    credentials: true,
+  })
+);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); // to parse form data(urlencoded)
 app.use(cookieParser());
-app.use(express.static("public"))
+app.use(express.static("public"));
 
-
-// Routes import 
-import userRoutes from './route/user.route.js';
-import jobRoutes from "./route/job.route.js"
-import feedBackRoutes from "./route/feedback.route.js"
-
-
+// Routes import
+import userRoutes from "./route/user.route.js";
+import jobRoutes from "./route/job.route.js";
+import feedBackRoutes from "./route/feedback.route.js";
 
 // Route declaration
 
-app.use('/api/v1/users', userRoutes); //localhost:8000/api/v1/users/
-app.use('/api/v1/jobs', jobRoutes); 
-app.use('/api/v1/feedback',feedBackRoutes);
+app.use("/api/v1/users", userRoutes); //localhost:8000/api/v1/users/
+app.use("/api/v1/jobs", jobRoutes);
+app.use("/api/v1/feedback", feedBackRoutes);
 
-export {app}
+export { app };

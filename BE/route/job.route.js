@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.route("/post-job").post(verifyJWT, postJob);
 router.route("/like-job/:id").post(verifyJWT, likeUnlikeJobs);
-router.route("/extract-skills").post(verifyJWT,extractJobPosting);
-router.route("/get-resume-text").get(verifyJWT,getResumetext)
+router.route("/extract-jobs").post(verifyJWT,extractJobPosting);
+router.route("/get-resume-text").post(verifyJWT,getResumetext)
 
 export default router;

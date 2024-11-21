@@ -75,7 +75,7 @@ export const likeUnlikeJobs = async (req, res) => {
 };
 export const getResumetext=async(req,res)=>{
   try {
-    const userResumeUrl = req.user?.resume;
+    const userResumeUrl = req.body.user?.resume;
       console.log("User resume URL:", userResumeUrl);
   
       if (!userResumeUrl) {

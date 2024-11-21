@@ -1,21 +1,25 @@
 import React, { useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import {
   FileTextOutlined,
   SolutionOutlined,
   CommentOutlined,
   SettingOutlined,
+  LogoutOutlined,
   MenuOutlined,
   CloseOutlined,
-} from "@ant-design/icons"; // importing relevant icons from antd
-import { Modal, Avatar } from "antd"; // Import Modal from Ant Design
+} from "@ant-design/icons"; // Importing relevant icons from Ant Design
+import { Modal, Avatar, Button, message } from "antd"; // Importing Modal and message for notifications
 import { UserOutlined } from "@ant-design/icons";
 import logo from "../../assets/briefcase.png";
 import { useAuth } from "../../Contexts/AuthContext.jsx";
+import axios, { axiosPrivate } from '../../api/axios.js';
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
-  const { auth } = useAuth();
+  const { auth, setAuth } = useAuth();
   const profile = auth?.user?.profilePhoto;
+  const { user, accessToken } = auth;
+  const navigate = useNavigate();
 
   // State for controlling popups
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
@@ -27,6 +31,32 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
   const openSettingsPopup = () => setIsSettingsOpen(true);
   const closeSettingsPopup = () => setIsSettingsOpen(false);
+
+  // Logout Handler
+  const handleLogout = async () => {
+    try {
+      await axios.post(
+        "/api/v1/users/logout",
+        { user }, // Send an empty body
+        {
+          withCredentials: true,
+        }
+      );
+
+      // Clear auth state
+      setAuth({});
+      console.log(`Auth state after logout : ${auth}`)
+
+      // Show success message
+      message.success("You have been logged out successfully!");
+
+      // Redirect to home page
+      navigate("/");
+    } catch (error) {
+      console.error("Error during logout:", error);
+      message.error("Failed to log out. Please try again.");
+    }
+  };
 
   return (
     <div className="fixed lg:static">
@@ -113,6 +143,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           </div>
         </div>
       </aside>
+
       {/* Feedback Modal */}
       <Modal
         title={
@@ -122,13 +153,12 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
         onCancel={closeFeedbackPopup}
         footer={null}
         style={{
-          borderRadius: '8px',
+          borderRadius: "8px",
         }}
         closable={true}
         closeIcon={<CloseOutlined className="text-orange-700" />}
       >
         <p>Here you can submit your feedback.</p>
-        {/* Add feedback form or content here */}
       </Modal>
 
       {/* Settings Modal */}
@@ -140,16 +170,27 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
         onCancel={closeSettingsPopup}
         footer={null}
         style={{
-          borderRadius: '8px',
+          borderRadius: "8px",
         }}
         closable={true}
         closeIcon={<CloseOutlined className="text-orange-700" />}
       >
         <p>Adjust your account settings here.</p>
-        {/* Add settings form or content here */}
+        <div className="mt-4 flex justify-end">
+          <Button
+            icon={<LogoutOutlined />}
+            onClick={handleLogout}
+            style={{
+              backgroundColor: '#c05621', // Hex equivalent of orange-700
+              color: '#ffffff',          // White text
+              borderColor: 'transparent',
+              boxShadow: '0 2px 8px rgba(192, 86, 33, 0.4)', // Orange-700 shadow
+            }}
+          >
+            Logout
+          </Button>
+        </div>
       </Modal>
-
-
     </div>
   );
 };

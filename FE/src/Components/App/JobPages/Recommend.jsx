@@ -1,22 +1,35 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Button, Typography, Input, Select } from 'antd';
-import { EnvironmentOutlined, ClockCircleOutlined, HeartOutlined, HeartFilled, CheckCircleOutlined, CheckCircleFilled, SearchOutlined } from '@ant-design/icons';
+import { Card, Button, Typography, Input } from 'antd';
+import {
+  EnvironmentOutlined,
+  ClockCircleOutlined,
+  HeartOutlined,
+  HeartFilled,
+  CheckCircleOutlined,
+  CheckCircleFilled,
+  SearchOutlined
+} from '@ant-design/icons';
 import { formatDistanceToNow } from 'date-fns';
 import { useSelectedJobs } from '../../../Contexts/SelectedJobsContext';
 import { useFetchedJobs } from '../../../Contexts/FetchedJobsContext';
 
 const { Title, Text } = Typography;
 
-
-
 function Recommend() {
-  const { jobs, setJobs } = useFetchedJobs()
-  const [searchTerm, setSearchTerm] = useState(''); // State for search input
-  const [likedJobs, setLikedJobs] = useState([]); // State for liked jobs
-  const { selectedJobs, setSelectedJobs } = useSelectedJobs() // Will select only one job id out of the jobs
-  const [filteredJobs, setFilteredJobs] = useState(jobs);
+  const { jobs, setJobs } = useFetchedJobs();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [likedJobs, setLikedJobs] = useState([]);
+  const { selectedJobs, setSelectedJobs } = useSelectedJobs();
+  const [filteredJobs, setFilteredJobs] = useState([]);
 
-  // Effect to filter jobs based on the search term
+  // Simulate fetching jobs (use actual API fetching logic if available)
+  useEffect(() => {
+    if (jobs) {
+      setFilteredJobs(jobs);
+    }
+  }, [jobs]);
+
+  // Filter jobs based on search term
   useEffect(() => {
     const filtered = jobs.filter(job =>
       job.title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -24,16 +37,10 @@ function Recommend() {
     setFilteredJobs(filtered);
   }, [searchTerm, jobs]);
 
-  useEffect(() => {
-    console.log(selectedJobs);  // Will now log the correct value after state update
-  }, [selectedJobs]);
-
-  // Toggle like button
   const toggleLike = (jobId) => {
     setLikedJobs(prev => prev.includes(jobId) ? prev.filter(id => id !== jobId) : [...prev, jobId]);
   };
 
-  // Toggle select button (for single job selection)
   const toggleSelect = (jobId) => {
     setSelectedJobs(prev => prev === jobId ? null : jobId);
   };
@@ -41,116 +48,117 @@ function Recommend() {
   return (
     <div className="flex flex-col items-center justify-start gap-6 p-4 w-full h-full overflow-auto">
       {/* Search Input */}
-      <h1 className='text-2xl text-gray-700'>Recommended from Resume</h1>
+      <h1 className="text-2xl text-gray-700">Recommended from Resume</h1>
       <div className="w-full max-w-md mb-6">
         <Input
           placeholder="Search by job title"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           size="large"
-          prefix={<SearchOutlined style={{ color: '#C05621' }} />} // Changed color here
-          style={{ borderColor: '#C05621', outline: 'none' }} // Changed border color
+          prefix={<SearchOutlined style={{ color: '#C05621' }} />}
+          style={{ borderColor: '#C05621', outline: 'none' }}
         />
       </div>
 
-      {/* Job Cards */}
-      {filteredJobs.map((job) => (
-        <Card
-          key={job.id}
-          title={
-            <div className="flex justify-between items-center">
-              <div>
-                <Title level={4} style={{ marginBottom: 0, color: "#333" }}>
-                  {job.title}
-                </Title>
-                <Text type="secondary">{job.company.display_name}</Text>
+      {/* Job Cards or Loader */}
+      {filteredJobs.length === 0 ? (
+        <div className="flex items-center justify-center h-full">
+          <div
+            className="w-12 h-12 border-4 border-orange-700 border-t-transparent rounded-full animate-spin"
+            role="status"
+            aria-label="loading"
+          />
+          <p className="text-orange-700 p-5">Loading Jobs according to your Skills...</p>
+        </div>
+      ) : (
+        filteredJobs.map((job) => (
+          <Card
+            key={job.id}
+            title={
+              <div className="flex justify-between items-center">
+                <div>
+                  <Title level={4} style={{ marginBottom: 0, color: "#333" }}>
+                    {job.title}
+                  </Title>
+                  <Text type="secondary">{job.company.display_name}</Text>
+                </div>
+                <div className="flex gap-4 mr-4">
+                  <span onClick={() => toggleLike(job.id)}>
+                    {likedJobs.includes(job.id) ? (
+                      <HeartFilled style={{ color: '#C05621', fontSize: '1.5rem' }} />
+                    ) : (
+                      <HeartOutlined style={{ color: '#C05621', fontSize: '1.5rem' }} />
+                    )}
+                  </span>
+                  <span onClick={() => toggleSelect(job.id)} className="flex flex-col items-center">
+                    {selectedJobs === job.id ? (
+                      <CheckCircleFilled style={{ color: '#C05621', fontSize: '1.5rem' }} />
+                    ) : (
+                      <CheckCircleOutlined style={{ color: '#C05621', fontSize: '1.5rem' }} />
+                    )}
+                    <p>Ask Kaam AI</p>
+                  </span>
+                </div>
               </div>
-              <div className="flex gap-4 mr-4">
-                {/* Like Button */}
-                <span onClick={() => toggleLike(job.id)}>
-                  {likedJobs.includes(job.id) ? (
-                    <HeartFilled style={{ color: '#C05621', fontSize: '1.5rem' }} /> // Changed color here
-                  ) : (
-                    <HeartOutlined style={{ color: '#C05621', fontSize: '1.5rem' }} /> // Changed color here
-                  )}
-                </span>
-
-                {/* Select Button */}
-                <span onClick={() => toggleSelect(job.id)} className='flex flex-col items-center'>
-                  {selectedJobs === job.id ? (
-                    <CheckCircleFilled style={{ color: '#C05621', fontSize: '1.5rem' }} /> // Changed color here
-                  ) : (
-                    <CheckCircleOutlined style={{ color: '#C05621', fontSize: '1.5rem' }} /> // Changed color here
-                  )}
-                  <p>Ask Kaam AI</p>
-                </span>
-              </div>
+            }
+            bordered={false}
+            style={{
+              width: '100%',
+              maxWidth: 600,
+              boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
+              borderRadius: '8px',
+              border: '1px solid #e0e0e0',
+              transition: 'border-color 0.3s ease',
+            }}
+            hoverable
+            className="hover:border-orange-700"
+          >
+            <div className="flex flex-col gap-2">
+              <p>
+                <EnvironmentOutlined style={{ color: '#C05621' }} />
+                <Text strong>Location:</Text> {job.location.display_name}
+              </p>
+              <p>
+                <ClockCircleOutlined style={{ color: '#C05621' }} />
+                <Text strong>Contract Type:</Text> {job.contract_type}
+              </p>
+              <p>
+                <Text strong>Contract Time:</Text> {job.contract_time}
+              </p>
+              <p>
+                <Text strong>Description:</Text>{' '}
+                {job.description.length > 100 ? `${job.description.slice(0, 100)}...` : job.description}
+              </p>
+              <p>
+                <Text strong>Posted:</Text>{' '}
+                {formatDistanceToNow(new Date(job.created), { addSuffix: true })}
+              </p>
+              <a href={job.redirect_url} target="_blank" rel="noopener noreferrer">
+                <Button
+                  type="primary"
+                  block
+                  style={{ backgroundColor: '#C05621', borderColor: '#C05621' }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#7f2e13';
+                    e.currentTarget.style.borderColor = '#7f2e13';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = '#C05621';
+                    e.currentTarget.style.borderColor = '#C05621';
+                  }}
+                >
+                  Get more Information
+                </Button>
+              </a>
             </div>
-          }
-          bordered={false}
-          style={{
-            width: '100%',  // Full width
-            maxWidth: 600,   // Limit the card width for readability
-            boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
-            borderRadius: '8px',
-            border: '1px solid #e0e0e0',
-            transition: 'border-color 0.3s ease',
-          }}
-          hoverable
-          className="hover:border-orange-700" // Tailwind class
-        >
-          {/* Location */}
-          <p>
-            <EnvironmentOutlined style={{ color: '#C05621' }} /> {/* Changed color here */}
-            <Text strong>Location:</Text> {job.location.display_name}
-          </p>
-
-          {/* Contract Type */}
-          <p>
-            <ClockCircleOutlined style={{ color: '#C05621' }} /> {/* Changed color here */}
-            <Text strong>Contract Type:</Text> {job.contract_type}
-          </p>
-
-          {/* Contract Time */}
-          <p>
-            <Text strong>Contract Time:</Text> {job.contract_time}
-          </p>
-
-          {/* Job Description */}
-          <p>
-            <Text strong>Description:</Text>{' '}
-            {job.description.length > 100 ? `${job.description.slice(0, 100)}...` : job.description}
-          </p>
-
-          {/* Created Date */}
-          <p>
-            <Text strong>Posted:</Text>{' '}
-            {formatDistanceToNow(new Date(job.created), { addSuffix: true })}
-          </p>
-
-          {/* Redirect Button */}
-          <a href={job.redirect_url} target="_blank" rel="noopener noreferrer">
-            <Button type="primary" block style={{ backgroundColor: '#C05621', borderColor: '#C05621' }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#7f2e13'; // Darker shade on hover
-                e.currentTarget.style.borderColor = '#7f2e13'; // Darker shade on hover
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#C05621'; // Original color
-                e.currentTarget.style.borderColor = '#C05621'; // Original color
-              }}
-            > {/* Changed button color */}
-              Get more Information
-            </Button>
-          </a>
-        </Card>
-      ))}
+          </Card>
+        ))
+      )}
     </div>
   );
 }
 
 export default Recommend;
-
 
 /*
 {

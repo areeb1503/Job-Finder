@@ -35,7 +35,7 @@ export const FetchedJobsProvider = ({ children }) => {
     };
 
     fetchJobs();
-  }, [auth, jobs]);
+  }, []);
 
   return (
     <FetchedJobsContext.Provider value={{ err, jobs, setErr, setJobs }}>

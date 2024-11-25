@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import {
   FileTextOutlined,
@@ -8,12 +8,13 @@ import {
   LogoutOutlined,
   MenuOutlined,
   CloseOutlined,
-} from "@ant-design/icons"; // Importing relevant icons from Ant Design
-import { Modal, Avatar, Button, message } from "antd"; // Importing Modal and message for notifications
+} from "@ant-design/icons";
+import { Modal, Avatar } from "antd";
 import { UserOutlined } from "@ant-design/icons";
 import logo from "../../assets/briefcase.png";
 import { useAuth } from "../../Contexts/AuthContext.jsx";
-import axios, { axiosPrivate } from '../../api/axios.js';
+import axios from "../../api/axios.js";
+import { Rate, Button, Input, message } from "antd";
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   const { auth, setAuth } = useAuth();
@@ -32,25 +33,63 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   const openSettingsPopup = () => setIsSettingsOpen(true);
   const closeSettingsPopup = () => setIsSettingsOpen(false);
 
+  const [feedbackText, setFeedbackText] = useState("");
+  const [rating, setRating] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [msg, setMsg] = useState("");
+
+  useEffect(() => {
+    console.log(rating)
+  }, [rating]);
+  
+
+  const handleSubmit = async () => {
+    if (!feedbackText || rating === 0) {
+      message.error("Please fill in all required fields!");
+      return;
+    }
+    setLoading(true);
+    try {
+      const response = await axios.post(
+        "/api/v1/feedback/add-feedback",
+        { feedbackText, rating },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          withCredentials: true,
+        }
+      );
+
+      message.success("Feedback submitted successfully!");
+      setMsg("Feedback submitted successfully!");
+      console.log(msg);
+      setFeedbackText("");
+      setRating(0);
+    } catch (error) {
+      message.error("Failed to submit feedback!");
+      setMsg("Failed to submit feedback!");
+      console.error("Error submitting feedback:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Logout Handler
   const handleLogout = async () => {
     try {
       await axios.post(
         "/api/v1/users/logout",
-        { user }, // Send an empty body
+        { user },
         {
           withCredentials: true,
         }
       );
 
-      // Clear auth state
       setAuth({});
-      console.log(`Auth state after logout : ${auth}`)
-
-      // Show success message
+      console.log(`Auth state after logout : ${auth}`);
       message.success("You have been logged out successfully!");
-
-      // Redirect to home page
       navigate("/");
     } catch (error) {
       console.error("Error during logout:", error);
@@ -132,12 +171,12 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             </ul>
           </nav>
 
-          {/* Avatar at the bottom with modern styling */}
+          {/* Avatar */}
           <div className="flex justify-center mt-6 mb-4">
             <Avatar
               size={48}
-              src={profile ? profile : undefined} // Use profile image if available, otherwise undefined
-              icon={profile ? null : <UserOutlined />} // Show icon if no profile is provided
+              src={profile || undefined}
+              icon={!profile && <UserOutlined />}
               className="border-2 border-orange-700 shadow-lg rounded-full transition-all duration-300 ease-in-out hover:shadow-xl hover:border-orange-500"
             />
           </div>
@@ -146,9 +185,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
       {/* Feedback Modal */}
       <Modal
-        title={
-          <h2 className="text-orange-700 text-lg font-semibold">Feedback</h2>
-        }
+        title={<h2 className="text-orange-700 text-lg font-semibold">Feedback</h2>}
         visible={isFeedbackOpen}
         onCancel={closeFeedbackPopup}
         footer={null}
@@ -158,14 +195,57 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
         closable={true}
         closeIcon={<CloseOutlined className="text-orange-700" />}
       >
-        <p>Here you can submit your feedback.</p>
+        <div className="max-w-md w-full p-6 bg-white shadow-md rounded-md mx-auto">
+          <div className="text-center mb-6">
+            <h1 className="text-xl font-bold text-orange-700">
+              Please consider giving your Feedback here.
+            </h1>
+            <p className="text-sm text-gray-600">
+              Your feedback helps us make a better product.
+            </p>
+          </div>
+          <form className="flex flex-col gap-4">
+            <div>
+              <label className="block text-orange-700 font-medium mb-1">
+                Feedback<span className="text-red-700">*</span>
+              </label>
+              <Input.TextArea
+                value={feedbackText}
+                onChange={(e) => setFeedbackText(e.target.value)}
+                rows={3}
+                placeholder="Write your feedback here"
+                className="border border-orange-700 focus:ring focus:ring-orange-300 rounded-md"
+                maxLength={300}
+              />
+            </div>
+            <div>
+              <label className="block text-orange-700 font-medium mb-1">
+                Rating<span className="text-red-700">*</span>
+              </label>
+              <Rate
+                value={rating}
+                onChange={(value) => {
+                  setRating(value);
+                  console.log("Selected rating:", value);
+                }}
+                className="text-orange-700"
+              />
+            </div>
+            <Button
+              type="primary"
+              loading={loading}
+              onClick={handleSubmit}
+              className="bg-orange-700 hover:bg-orange-800 border-none py-2 px-4 rounded-md text-white w-full"
+            >
+              Submit
+            </Button>
+          </form>
+        </div>
       </Modal>
 
       {/* Settings Modal */}
       <Modal
-        title={
-          <h2 className="text-orange-700 text-lg font-semibold">Settings</h2>
-        }
+        title={<h2 className="text-orange-700 text-lg font-semibold">Settings</h2>}
         visible={isSettingsOpen}
         onCancel={closeSettingsPopup}
         footer={null}
@@ -181,10 +261,10 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             icon={<LogoutOutlined />}
             onClick={handleLogout}
             style={{
-              backgroundColor: '#c05621', // Hex equivalent of orange-700
-              color: '#ffffff',          // White text
-              borderColor: 'transparent',
-              boxShadow: '0 2px 8px rgba(192, 86, 33, 0.4)', // Orange-700 shadow
+              backgroundColor: "#c05621",
+              color: "#ffffff",
+              borderColor: "transparent",
+              boxShadow: "0 2px 8px rgba(192, 86, 33, 0.4)",
             }}
           >
             Logout

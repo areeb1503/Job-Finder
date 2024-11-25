@@ -21,7 +21,7 @@ function Resume() {
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const prompt = `
-      Create a clean JSX representation of the following resume text: "${resume}". 
+      Create a clean JSX(no comments and no {" "} spaces) representation of the following resume text: "${resume}". 
       - Do not include any imports, function definitions, or extra code, or any explanation.
       - Only generate JSX content.
       - Divide into sections: Contact Information, Skills, Experience, Education. Format it just like an actual Resume.

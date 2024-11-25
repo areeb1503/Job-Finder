@@ -322,7 +322,7 @@ const SignUp = () => {
                     {/* Conditionally render the resume upload field */}
                     {formData.role === 'student' && (
                         <div>
-                            <label className="block text-gray-700 font-semibold mb-1">Resume</label>
+                            <label className="block text-gray-700 font-semibold mb-1">Resume (in PDF format)</label>
                             <Upload
                                 accept=".pdf"
                                 beforeUpload={(file) => handleUpload('resume', file)}

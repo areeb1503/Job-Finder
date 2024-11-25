@@ -46,8 +46,6 @@ function App() {
               <Route path="liked" element={<Liked />} />
             </Route>
             <Route path="resume" element={<Resume />} />
-            <Route path="feedback" element={<Feedback />} />
-            <Route path="settings" element={<Settings />} />
           </Route>
         </Route>
 

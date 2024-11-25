@@ -4,7 +4,7 @@ import { ApiResponse } from "../utils/apiResponse.js";
 
 export const addFeedback = async (req, res) => {
   try {
-    const { feedbackText, rating, comments } = req.body;
+    const { feedbackText, rating } = req.body;
     const userId = req.user._id;
     console.log(userId);
     
@@ -14,7 +14,6 @@ export const addFeedback = async (req, res) => {
     const feedback = await Feedback.create({
       feedbackText,
       rating,
-      comments,
       userId: userId,
     });
     res
@@ -26,3 +25,6 @@ export const addFeedback = async (req, res) => {
     return res.status(statusCode).json({ success: false, statusCode, message });
   }
 };
+
+// GetAllFeedback
+

@@ -16,10 +16,6 @@ const feedbackSchema = new mongoose.Schema({
       max: 5,
       required: true
     },
-    comments: {
-      type: String,
-      trim: true
-    } 
    
   },{timestamps:true});
   

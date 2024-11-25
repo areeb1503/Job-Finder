@@ -176,7 +176,7 @@ const getJobPostingsFromAdzuna = async (skills) => {
           app_id: adzunaAppId,
           app_key: adzunaAppKey,
           what_or: encodedSkills,
-          results_per_page: 10,
+          results_per_page: 20,
         },
       }
     );
@@ -199,5 +199,100 @@ const getJobPostingsFromDatabase = async (skills) => {
   } catch (error) {
     console.error("Error fetching job postings from database:", error);
     throw new Error("Failed to retrieve job postings from database");
+  }
+};
+
+export const toggleAdzunaLikedJob = async (req, res) => {
+  const { userId, jobId } = req.body;  // Expecting userId and jobId in the request body
+
+  // Check if both userId and jobId are provided
+  if (!userId || !jobId) {
+      return res.status(400).json({ message: "User ID and Job ID are required" });
+  }
+
+  try {
+      // Find the user by userId
+      const user = await User.findById(userId);
+
+      if (!user) {
+          return res.status(404).json({ message: "User not found" });
+      }
+
+      // Check if the job is already in the AdzunaLikedJobs array
+      const jobIndex = user.AdzunaLikedJobs.indexOf(jobId);
+
+      if (jobIndex === -1) {
+          // If the job is not in the array, add it (like the job)
+          user.AdzunaLikedJobs.push(jobId);
+          await user.save();
+          return res.status(200).json({ message: "Job liked successfully", AdzunaLikedJobs: user.AdzunaLikedJobs });
+      } else {
+          // If the job is already liked, remove it (unlike the job)
+          user.AdzunaLikedJobs.splice(jobIndex, 1);
+          await user.save();
+          return res.status(200).json({ message: "Job unliked successfully", AdzunaLikedJobs: user.AdzunaLikedJobs });
+      }
+  } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const isLiked = async (req, res) => {
+  const { userId, jobId } = req.body; // Expecting userId and jobId in the request body
+
+  // Validate input
+  if (!userId || !jobId) {
+      return res.status(400).json({ message: "User ID and Job ID are required" });
+  }
+
+  try {
+      // Find the user by userId
+      const user = await User.findById(userId);
+
+      if (!user) {
+          return res.status(404).json({ message: "User not found" });
+      }
+
+      // Check if the jobId exists in the AdzunaLikedJobs array
+      const isJobLiked = user.AdzunaLikedJobs.includes(jobId);
+
+      // Respond with the like status
+      return res.status(200).json({ 
+          message: isJobLiked ? "Job is liked" : "Job is not liked", 
+          isLiked: isJobLiked 
+      });
+  } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const getAdzunaLikedJobs = async (req, res) => {
+  const { userId } = req.body; // Expecting userId in the request body
+
+  // Validate input
+  if (!userId) {
+      return res.status(400).json({ message: "User ID is required" });
+  }
+
+  try {
+      // Find the user by userId
+      const user = await User.findById(userId);
+
+      if (!user) {
+          return res.status(404).json({ message: "User not found" });
+      }
+
+      // Retrieve all liked jobs from AdzunaLikedJobs
+      const likedJobs = user.AdzunaLikedJobs;
+
+      return res.status(200).json({ 
+          message: "Liked jobs retrieved successfully", 
+          likedJobs 
+      });
+  } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: "Internal server error" });
   }
 };

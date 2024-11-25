@@ -47,6 +47,11 @@ const userSchema = new Schema({
         },
     ],
 
+    AdzunaLikedJobs: {
+        type: [String],  // Array of numbers for job IDs
+        default: []
+    }
+
 }, { timestamps: true })
 
 userSchema.methods.isPasswordCorrect = async function (password) {

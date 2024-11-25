@@ -7,11 +7,13 @@ import {
   HeartFilled,
   CheckCircleOutlined,
   CheckCircleFilled,
-  SearchOutlined
+  SearchOutlined,
 } from '@ant-design/icons';
 import { formatDistanceToNow } from 'date-fns';
 import { useSelectedJobs } from '../../../Contexts/SelectedJobsContext';
 import { useFetchedJobs } from '../../../Contexts/FetchedJobsContext';
+import axios from '../../../api/axios';
+import { useAuth } from '../../../Contexts/AuthContext';
 
 const { Title, Text } = Typography;
 
@@ -22,6 +24,9 @@ function Recommend() {
   const { selectedJobs, setSelectedJobs } = useSelectedJobs();
   const [filteredJobs, setFilteredJobs] = useState([]);
   const [expandedDescriptions, setExpandedDescriptions] = useState({});
+  const { auth } = useAuth();
+  const { user, accessToken } = auth;
+  const userId = user?._id;
 
   useEffect(() => {
     if (jobs) {
@@ -30,22 +35,94 @@ function Recommend() {
   }, [jobs]);
 
   useEffect(() => {
-    const filtered = jobs.filter(job =>
+    const filtered = jobs.filter((job) =>
       job.title.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredJobs(filtered);
   }, [searchTerm, jobs]);
 
-  const toggleLike = (jobId) => {
-    setLikedJobs(prev => prev.includes(jobId) ? prev.filter(id => id !== jobId) : [...prev, jobId]);
+  // Function to toggle like/unlike a job
+  const toggleLike = async (jobId) => {
+    try {
+      // Optimistically update the state before making an API call
+      setLikedJobs((prevLikedJobs) =>
+        prevLikedJobs.includes(jobId)
+          ? prevLikedJobs.filter((id) => id !== jobId)
+          : [...prevLikedJobs, jobId]
+      );
+
+      // Make API call to toggle like/unlike
+      const response = await axios.post(
+        '/api/v1/jobs/toggle-like-adzuna',
+        { userId, jobId },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessToken}`,
+          },
+          withCredentials: true,
+        }
+      );
+
+      // Update state based on server response to ensure consistency
+      console.log(response.data.AdzunaLikedJobs )
+      setLikedJobs(response.data.AdzunaLikedJobs || []);
+    } catch (error) {
+      console.error('Error toggling like:', error);
+
+      // Revert the optimistic update if the API call fails
+      setLikedJobs((prevLikedJobs) =>
+        prevLikedJobs.includes(jobId)
+          ? [...prevLikedJobs, jobId]
+          : prevLikedJobs.filter((id) => id !== jobId)
+      );
+    }
   };
 
+
+
+  // Function to check if a job is liked
+  // const isJobLiked = async (jobId) => {
+  //   try {
+  //     const response = await axios.post('/api/v1/jobs/is-adzuna-liked', { jobId });
+  //     return response.data.isLiked;
+  //   } catch (error) {
+  //     console.error('Error checking if job is liked:', error);
+  //     return false;
+  //   }
+  // };
+
+  // Initialize liked jobs from the server
+  useEffect(() => {
+    const fetchLikedJobs = async () => {
+      try {
+        const response = await axios.post(
+          '/api/v1/jobs/get-adzuna-liked',
+          { userId },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${accessToken}`,
+            },
+            withCredentials: true,
+          }
+        );
+        console.log('Fetched liked jobs:', response.data.likedJobs);
+        setLikedJobs(response.data.likedJobs || []); // Default to an empty array
+      } catch (error) {
+        console.error('Error fetching liked jobs:', error);
+      }
+    };
+    fetchLikedJobs();
+  }, [userId, accessToken]);
+
+
   const toggleSelect = (jobId) => {
-    setSelectedJobs(prev => prev === jobId ? null : jobId);
+    setSelectedJobs((prev) => (prev === jobId ? null : jobId));
   };
 
   const toggleDescription = (jobId) => {
-    setExpandedDescriptions(prev => ({
+    setExpandedDescriptions((prev) => ({
       ...prev,
       [jobId]: !prev[jobId],
     }));
@@ -80,17 +157,17 @@ function Recommend() {
             title={
               <div className="flex justify-between items-center flex-wrap gap-2">
                 <div>
-                  <Title level={4} style={{ marginBottom: 0, color: "#333" }}>
+                  <Title level={4} style={{ marginBottom: 0, color: '#333' }}>
                     {job.title}
                   </Title>
                   <Text type="secondary">{job.company.display_name}</Text>
                 </div>
                 <div className="flex gap-4">
-                  <span onClick={() => toggleLike(job.id)}>
-                    {likedJobs.includes(job.id) ? (
-                      <HeartFilled style={{ color: "#C05621", fontSize: "1.5rem" }} />
+                  <span onClick={() => toggleLike(job.id)} className="cursor-pointer">
+                    {likedJobs?.includes(job.id) ? (
+                      <HeartFilled style={{ color: '#C05621', fontSize: '1.5rem' }} />
                     ) : (
-                      <HeartOutlined style={{ color: "#C05621", fontSize: "1.5rem" }} />
+                      <HeartOutlined style={{ color: '#C05621', fontSize: '1.5rem' }} />
                     )}
                   </span>
                   <span
@@ -98,9 +175,9 @@ function Recommend() {
                     className="flex flex-col items-center"
                   >
                     {selectedJobs === job.id ? (
-                      <CheckCircleFilled style={{ color: "#C05621", fontSize: "1.5rem" }} />
+                      <CheckCircleFilled style={{ color: '#C05621', fontSize: '1.5rem' }} />
                     ) : (
-                      <CheckCircleOutlined style={{ color: "#C05621", fontSize: "1.5rem" }} />
+                      <CheckCircleOutlined style={{ color: '#C05621', fontSize: '1.5rem' }} />
                     )}
                     <p>Ask Kaam AI</p>
                   </span>
@@ -109,23 +186,23 @@ function Recommend() {
             }
             bordered={false}
             style={{
-              width: "100%",
-              maxWidth: "900px",
-              boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
-              borderRadius: "8px",
-              border: "1px solid #e0e0e0",
-              transition: "border-color 0.3s ease",
+              width: '100%',
+              maxWidth: '900px',
+              boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
+              borderRadius: '8px',
+              border: '1px solid #e0e0e0',
+              transition: 'border-color 0.3s ease',
             }}
             hoverable
             className="hover:border-orange-700 mx-auto"
           >
             <div className="flex flex-col gap-4">
               <p className="truncate">
-                <EnvironmentOutlined style={{ color: "#C05621" }} />
+                <EnvironmentOutlined style={{ color: '#C05621' }} />
                 <Text strong>Location:</Text> {job.location.display_name}
               </p>
               <p>
-                <ClockCircleOutlined style={{ color: "#C05621" }} />
+                <ClockCircleOutlined style={{ color: '#C05621' }} />
                 <Text strong>Contract Type:</Text> {job.contract_type}
               </p>
               <p>
@@ -149,14 +226,14 @@ function Recommend() {
                 <Button
                   type="primary"
                   block
-                  style={{ backgroundColor: "#C05621", borderColor: "#C05621" }}
+                  style={{ backgroundColor: '#C05621', borderColor: '#C05621' }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "#7f2e13";
-                    e.currentTarget.style.borderColor = "#7f2e13";
+                    e.currentTarget.style.backgroundColor = '#7f2e13';
+                    e.currentTarget.style.borderColor = '#7f2e13';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "#C05621";
-                    e.currentTarget.style.borderColor = "#C05621";
+                    e.currentTarget.style.backgroundColor = '#C05621';
+                    e.currentTarget.style.borderColor = '#C05621';
                   }}
                 >
                   Get more Information
@@ -171,6 +248,7 @@ function Recommend() {
 }
 
 export default Recommend;
+
 
 
 /*

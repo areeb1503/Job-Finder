@@ -38,6 +38,25 @@ const YourJobs = () => {
     }
   };
 
+  const handleDeleteJob = async (jobId) => {
+    try {
+      const response = await axios.delete(`/api/v1/jobs/${jobId}`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+        withCredentials: true,
+      });
+
+      message.success(response.data.message || "Job deleted successfully.");
+      // After deletion, fetch the updated list of jobs
+      fetchJobs();
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message || "Failed to delete job!";
+      message.error(errorMessage);
+    }
+  };
+
   useEffect(() => {
     fetchJobs();
   }, []);
@@ -76,6 +95,7 @@ const YourJobs = () => {
                       type="link"
                       danger
                       className="text-orange-700"
+                      onClick={() => handleDeleteJob(job._id)}
                     >
                       <DeleteOutlined /> Delete
                     </Button>,

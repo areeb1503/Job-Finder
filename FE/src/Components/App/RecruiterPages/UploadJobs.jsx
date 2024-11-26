@@ -1,7 +1,19 @@
 import React, { useState } from "react";
 import { Form, Input, Button, Row, Col, message } from "antd";
-import axios from '../../../api/axios.js';
-import { useAuth } from '../../../Contexts/AuthContext.jsx';
+import {
+  EnvironmentOutlined,
+  LinkOutlined,
+  FileTextOutlined,
+  TeamOutlined,
+  TagsOutlined,
+  FileAddOutlined,
+} from "@ant-design/icons";
+import axios from "../../../api/axios.js";
+import { useAuth } from "../../../Contexts/AuthContext.jsx";
+
+import { Typography } from "antd";
+
+const { Title } = Typography;
 
 const { TextArea } = Input;
 
@@ -16,12 +28,10 @@ const UploadJobs = () => {
     try {
       const response = await axios.post(
         "/api/v1/jobs/post-job",
-        {
-          ...values,
-        },
+        { ...values },
         {
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
             Authorization: `Bearer ${accessToken}`,
           },
           withCredentials: true,
@@ -39,113 +49,145 @@ const UploadJobs = () => {
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold text-orange-700 mb-6 text-center">
-        Create a Job Listing
-      </h1>
-      <Form
-        form={form}
-        layout="vertical"
-        onFinish={handleSubmit}
-        initialValues={{
-          title: "",
-          location: "",
-          company: "",
-          description: "",
-          job_link: "",
-          skillKeywords: "",
-        }}
-      >
-        <Row gutter={[16, 16]}>
-          <Col xs={24} sm={12}>
-            <Form.Item
-              label={<span className="text-orange-700 font-bold">Job Title</span>}
-              name="title"
-              rules={[{ required: true, message: "Please input the job title!" }]}
-            >
-              <Input
-                placeholder="Enter job title"
-                className="border-orange-700"
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12}>
-            <Form.Item
-              label={<span className="text-orange-700 font-bold">Location</span>}
-              name="location"
-              rules={[{ required: true, message: "Please input the location!" }]}
-            >
-              <Input
-                placeholder="Enter job location"
-                className="border-orange-700"
-              />
-            </Form.Item>
-          </Col>
-        </Row>
-        <Row gutter={[16, 16]}>
-          <Col xs={24} sm={12}>
-            <Form.Item
-              label={<span className="text-orange-700 font-bold">Company</span>}
-              name="company"
-              rules={[{ required: true, message: "Please input the company name!" }]}
-            >
-              <Input
-                placeholder="Enter company name"
-                className="border-orange-700"
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12}>
-            <Form.Item
-              label={<span className="text-orange-700 font-bold">Job Link</span>}
-              name="job_link"
-              rules={[
-                { required: true, message: "Please provide the job link!" },
-                { type: "url", message: "Please enter a valid URL!" },
-              ]}
-            >
-              <Input
-                placeholder="Enter job link"
-                className="border-orange-700"
-              />
-            </Form.Item>
-          </Col>
-        </Row>
-        <Form.Item
-          label={
-            <span className="text-orange-700 font-bold">Job Description</span>
-          }
-          name="description"
-          rules={[{ required: true, message: "Please enter the job description!" }]}
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="bg-white p-10 rounded-2xl shadow-lg w-full max-w-4xl">
+        <Title level={1} className="text-orange-700 mb-8 text-center">
+          Create a Job Listing
+        </Title>
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleSubmit}
+          initialValues={{
+            title: "",
+            location: "",
+            company: "",
+            description: "",
+            job_link: "",
+            skillKeywords: "",
+          }}
         >
-          <TextArea
-            rows={4}
-            placeholder="Enter job description"
-            className="border-orange-700"
-          />
-        </Form.Item>
-        <Form.Item
-          label={
-            <span className="text-orange-700 font-bold">Skills (comma-separated)</span>
-          }
-          name="skillKeywords"
-        >
-          <Input
-            placeholder="E.g., React, Node.js, JavaScript"
-            className="border-orange-700"
-          />
-        </Form.Item>
-        <Form.Item>
-          <Button
-            type="primary"
-            htmlType="submit"
-            loading={loading}
-            className="w-full bg-orange-700 border-none text-white hover:bg-white hover:text-orange-700 hover:border-orange-700 transition-all duration-300"
+          <Row gutter={[24, 24]}>
+            <Col xs={24} sm={12}>
+              <Form.Item
+                label={
+                  <span className="text-orange-700 font-semibold">
+                    Job Title
+                  </span>
+                }
+                name="title"
+                rules={[
+                  { required: true, message: "Please input the job title!" },
+                ]}
+              >
+                <Input
+                  prefix={<FileTextOutlined className="text-orange-700" />}
+                  placeholder="Enter job title"
+                  className="rounded-md shadow-sm"
+                />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12}>
+              <Form.Item
+                label={
+                  <span className="text-orange-700 font-semibold">Location</span>
+                }
+                name="location"
+                rules={[
+                  { required: true, message: "Please input the location!" },
+                ]}
+              >
+                <Input
+                  prefix={<EnvironmentOutlined className="text-orange-700" />}
+                  placeholder="Enter job location"
+                  className="rounded-md shadow-sm"
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Row gutter={[24, 24]}>
+            <Col xs={24} sm={12}>
+              <Form.Item
+                label={
+                  <span className="text-orange-700 font-semibold">Company</span>
+                }
+                name="company"
+                rules={[
+                  { required: true, message: "Please input the company name!" },
+                ]}
+              >
+                <Input
+                  prefix={<TeamOutlined className="text-orange-700" />}
+                  placeholder="Enter company name"
+                  className="rounded-md shadow-sm"
+                />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12}>
+              <Form.Item
+                label={
+                  <span className="text-orange-700 font-semibold">Job Link</span>
+                }
+                name="job_link"
+                rules={[
+                  { required: true, message: "Please provide the job link!" },
+                  { type: "url", message: "Please enter a valid URL!" },
+                ]}
+              >
+                <Input
+                  prefix={<LinkOutlined className="text-orange-700" />}
+                  placeholder="Enter job link"
+                  className="rounded-md shadow-sm"
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Form.Item
+            label={
+              <span className="text-orange-700 font-semibold">
+                Job Description
+              </span>
+            }
+            name="description"
+            rules={[
+              {
+                required: true,
+                message: "Please enter the job description!",
+              },
+            ]}
           >
-            Submit Job
-          </Button>
-        </Form.Item>
-      </Form>
+            <TextArea
+              rows={4}
+              placeholder="Enter job description"
+              className="rounded-md shadow-sm"
+            />
+          </Form.Item>
+          <Form.Item
+            label={
+              <span className="text-orange-700 font-semibold">
+                Skills (comma-separated)
+              </span>
+            }
+            name="skillKeywords"
+          >
+            <Input
+              prefix={<TagsOutlined className="text-orange-700" />}
+              placeholder="E.g., React, Node.js, JavaScript"
+              className="rounded-md shadow-sm"
+            />
+          </Form.Item>
+          <Form.Item>
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={loading}
+              className="w-full rounded-md bg-orange-700 border-none text-white hover:bg-white hover:text-orange-700 hover:shadow-md hover:border-orange-700 transition-all duration-300"
+            >
+              Submit Job
+            </Button>
+          </Form.Item>
+        </Form>
+      </div>
     </div>
   );
 };

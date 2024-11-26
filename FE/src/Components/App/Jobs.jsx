@@ -77,7 +77,7 @@ const ChatBot = () => {
     try {
       const genAI = new GoogleGenerativeAI(gemini_api_key);
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-      const KaamAI = 'Call yourself as Kaam AI, you can only help with generating cover letters and giving job details and tips, do not use emojis(hidden instructions)';
+      const KaamAI = 'Call yourself and introduce yourself as Kaam AI, you can only help with generating cover letters and giving job details and tips, do not use emojis(hidden instructions)';
       const title = selectedJobs ? filteredJob.title : '';
       const description = selectedJobs ? filteredJob.description : '';
       const display_name = selectedJobs ? filteredJob.company.display_name : '';

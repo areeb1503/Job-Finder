@@ -33,9 +33,6 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     const openFeedbackPopup = () => setIsFeedbackOpen(true);
     const closeFeedbackPopup = () => setIsFeedbackOpen(false);
 
-    const openSettingsPopup = () => setIsSettingsOpen(true);
-    const closeSettingsPopup = () => setIsSettingsOpen(false);
-
     // Logout handler
     const handleLogout = async () => {
         try {
@@ -147,15 +144,6 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                             </li>
                             <li>
                                 <button
-                                    onClick={openSettingsPopup}
-                                    className="flex items-center px-6 py-3 w-full text-gray-700 hover:bg-gray-100 hover:text-orange-700 duration-200"
-                                >
-                                    <SettingOutlined className="mr-3" />
-                                    Settings
-                                </button>
-                            </li>
-                            <li>
-                                <button
                                     onClick={handleLogout}
                                     className="flex items-center px-6 py-3 w-full text-gray-700 hover:bg-gray-100 hover:text-orange-700 duration-200"
                                 >
@@ -236,16 +224,6 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                         </Button>
                     </form>
                 </div>
-            </Modal>
-
-            {/* Settings Modal */}
-            <Modal
-                title={<h2 className="text-orange-700 text-lg font-semibold">Settings</h2>}
-                open={isSettingsOpen}
-                onCancel={closeSettingsPopup}
-                footer={null}
-            >
-                <p>Settings content goes here.</p>
             </Modal>
         </div>
     );

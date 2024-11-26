@@ -1,6 +1,6 @@
 import express from "express";
 import { verifyJWT } from "../middleware/auth.middleware.js";
-import { postJob, likeUnlikeJobs,extractJobPosting,getResumetext, toggleAdzunaLikedJob, isLiked,getAdzunaLikedJobs } from "../controller/job.controller.js";
+import { postJob, likeUnlikeJobs,extractJobPosting,getResumetext, toggleAdzunaLikedJob, isLiked,getAdzunaLikedJobs,getAllJobs } from "../controller/job.controller.js";
 
 const router = express.Router();
 
@@ -11,5 +11,6 @@ router.route("/get-resume-text").post(verifyJWT,getResumetext);
 router.route("/toggle-like-adzuna").post(verifyJWT,toggleAdzunaLikedJob);
 router.route("/is-adzuna-liked").post(verifyJWT,isLiked);
 router.route("/get-adzuna-liked").post(verifyJWT,getAdzunaLikedJobs);
+router.route("/get-all-jobs").get(verifyJWT,getAllJobs);
 
 export default router;

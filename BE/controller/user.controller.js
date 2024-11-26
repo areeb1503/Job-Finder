@@ -1,6 +1,7 @@
 import { ApiError } from "../utils/apiError.js";
 import { User } from "../models/user.model.js";
 import { ApiResponse } from "../utils/apiResponse.js";
+import { v2 as cloudinary } from "cloudinary";
 
 import bcrypt from "bcryptjs";
 import { uploadOnCloudinary } from "../utils/uploadThing.js";
@@ -29,7 +30,9 @@ const register = async (req, res) => {
     }
 
     // Check if user exists
-    const existingUser = await User.findOne({ $or: [{ email }, { phoneNumber }] });
+    const existingUser = await User.findOne({
+      $or: [{ email }, { phoneNumber }],
+    });
     if (existingUser) {
       console.log(`User already exists: ${email} or ${phoneNumber}`);
       throw new ApiError(400, "User already exists");
@@ -65,7 +68,9 @@ const register = async (req, res) => {
     console.log("User created:", user);
 
     // Generate tokens
-    const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id);
+    const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
+      user._id
+    );
 
     // Set tokens and return response
     const createdUser = await User.findById(user._id).select("-password");
@@ -79,7 +84,13 @@ const register = async (req, res) => {
       .status(201)
       .cookie("accessToken", accessToken, options)
       .cookie("refreshToken", refreshToken, options)
-      .json(new ApiResponse(200, { user: createdUser, accessToken, refreshToken }, "User registered successfully"));
+      .json(
+        new ApiResponse(
+          200,
+          { user: createdUser, accessToken, refreshToken },
+          "User registered successfully"
+        )
+      );
   } catch (error) {
     console.error("Error in register controller:", error);
     const statusCode = error.statusCode || 500;
@@ -87,8 +98,6 @@ const register = async (req, res) => {
     return res.status(statusCode).json({ success: false, statusCode, message });
   }
 };
-
-
 
 const login = async (req, res) => {
   try {
@@ -221,18 +230,31 @@ const getCurrentUser = async (req, res) => {
 const updateUserProfile = async (req, res) => {
   try {
     const { fullname, email, phoneNumber } = req.body;
-    if (!(fullname || email || phoneNumber)) {
-      throw new ApiError(400, "Fileld is required for updation");
-    }
-    const userId = await User.findById(req.user?._id);
+    console.log(fullname, email, phoneNumber);
 
-    const user = await User.findByIdAndUpdate(
-      userId,
+    let { profilePhoto } = req.body;
+    if (!fullname || !email || !phoneNumber) {
+      throw new ApiError(400, "Field is required for updation");
+    }
+    const user = await User.findById(req.user?._id);
+    if (profilePhoto) {
+      if (user.profilePhoto) {
+        await cloudinary.uploader.destroy(
+          user.profilePhoto.split("/").pop().split(".")[0]
+        );
+      }
+      const uploadedResponse = await uploadOnCloudinary(profilePhoto);
+      profilePhoto = uploadedResponse.url;
+    }
+
+    const newUser = await User.findByIdAndUpdate(
+      user,
       {
         $set: {
           fullname,
           email,
           phoneNumber,
+          profilePhoto,
         },
       },
       { new: true }
@@ -240,7 +262,7 @@ const updateUserProfile = async (req, res) => {
     console.log(user);
     return res
       .status(200)
-      .json(new ApiResponse(200, user, "User Profile updated successfully"));
+      .json(new ApiResponse(200, newUser, "User Profile updated successfully"));
   } catch (error) {
     throw new ApiError(
       500,

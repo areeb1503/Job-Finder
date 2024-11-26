@@ -103,7 +103,25 @@ export const getResumetext=async(req,res)=>{
   }
 
 }
+export const getAllJobs = async (req, res) => {
+  try {
+      // Fetch all jobs and populate 'created_by' and 'likes' fields
+      const jobs = await Job.find()
+          .populate("created_by", "fullname email") // Populate creator's details
+          .populate("likes", "fullname email");    // Populate user details who liked the job
 
+      res.status(200).json({
+          success: true,
+          data: jobs,
+      });
+  } catch (error) {
+      console.error("Error fetching jobs:", error);
+      res.status(500).json({
+          success: false,
+          message: "Failed to fetch jobs. Please try again later.",
+      });
+    }
+};
 export const extractJobPosting = async (req, res) => {
   try {
     const userResumeUrl = req.user?.resume;

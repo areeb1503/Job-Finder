@@ -27,4 +27,23 @@ export const addFeedback = async (req, res) => {
 };
 
 // GetAllFeedback
+export const getAllFeedback = async (req, res) => {
+  try {
+    
+    const feedbacks = await Feedback.find()
+      .sort({ createdAt: -1 }) // Sort by creation date in descending order
+      .populate({
+        path: "userId",
+        select: "fullname email role  profilePhoto -_id", 
+      });
 
+    if (feedbacks.length === 0) {
+      return res.status(200).json([]);
+    }
+
+    res.status(200).json(feedbacks);
+  } catch (error) {
+    console.error("Error in getAllFeedback controller: ", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};

@@ -112,6 +112,7 @@ export const getAllJobs = async (req, res) => {
 
       res.status(200).json({
           success: true,
+          
           data: jobs,
       });
   } catch (error) {
@@ -166,6 +167,7 @@ export const extractJobPosting = async (req, res) => {
   }
 };
 
+
 const extractSkills = async (resumeText) => {
   try {
     const geminiApiKey = process.env.GEMINI_API_KEY;
@@ -219,11 +221,40 @@ const getJobPostingsFromDatabase = async (skills) => {
     throw new Error("Failed to retrieve job postings from database");
   }
 };
+export const deleteJob = async (req, res) => {
+  try {
+    const { jobId } = req.params;
 
+    
+    if (!jobId) {
+      return res.status(400).json({ success: false, message: "Job ID is required." });
+    }
+
+    const job = await Job.findById(jobId);
+
+    if (!job) {
+      return res.status(404).json({ success: false, message: "Job not found." });
+    }
+
+    
+    if (job.created_by.toString() !== req.user.id) {
+      return res.status(403).json({ success: false, message: "You are not authorized to delete this job." });
+    }
+
+    await job.deleteOne();
+
+    res.status(200).json({
+      success: true,
+      message: "Job deleted successfully.",
+    });
+  } catch (error) {
+    console.error("Error in deleteJob controller:", error);
+    res.status(500).json({ success: false, message: "Internal server error." });
+  }
+};
 export const toggleAdzunaLikedJob = async (req, res) => {
   const { userId, jobId } = req.body;  // Expecting userId and jobId in the request body
 
-  // Check if both userId and jobId are provided
   if (!userId || !jobId) {
       return res.status(400).json({ message: "User ID and Job ID are required" });
   }

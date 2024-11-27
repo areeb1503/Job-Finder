@@ -73,55 +73,61 @@ export const likeUnlikeJobs = async (req, res) => {
     throw new ApiError(500, "Error in like post controller");
   }
 };
-export const getResumetext=async(req,res)=>{
+export const getResumetext = async (req, res) => {
   try {
     const userResumeUrl = req.body.user?.resume;
-      console.log("User resume URL:", userResumeUrl);
-  
-      if (!userResumeUrl) {
-        return res
-          .status(400)
-          .json({ message: "No resume URL found for the user" });
-      }
-  
-      const response = await axios.get(userResumeUrl, {
-        responseType: "arraybuffer",
-      });
-  
-      const pdfData = await pdfParse(response.data);
-      const resumeText = pdfData.text;
+    console.log("User resume URL:", userResumeUrl);
+
+    if (!userResumeUrl) {
       return res
-       .status(200)
-       .json(
-          new ApiResponse(200, resumeText, "Resume text extracted successfully")
-        );
+        .status(400)
+        .json({ message: "No resume URL found for the user" });
+    }
+
+    const response = await axios.get(userResumeUrl, {
+      responseType: "arraybuffer",
+    });
+
+    const pdfData = await pdfParse(response.data);
+    const resumeText = pdfData.text;
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(200, resumeText, "Resume text extracted successfully")
+      );
   } catch (error) {
     const statusCode = error.statusCode || 500;
     const message = error.message || "Error in resume text controller";
     return res.status(statusCode).json({ success: false, statusCode, message });
-    
+
   }
 
 }
 export const getAllJobs = async (req, res) => {
   try {
-      // Fetch all jobs and populate 'created_by' and 'likes' fields
-      const jobs = await Job.find()
-          .populate("created_by", "fullname email") // Populate creator's details
-          .populate("likes", "fullname email");    // Populate user details who liked the job
+    const userId = req.user._id;
+    // Fetch all jobs and populate 'created_by' and 'likes' fields
+    const jobs = await Job.find({
+      $or: [
+        { created_by: userId }, // Jobs created by the user
+        { likes: userId }       // Jobs liked by the user
+      ]
+    })
+      .populate("created_by", "fullname email") // Populate creator's details
+      .populate("likes", "fullname email");    // Populate user details who liked the job
 
-      res.status(200).json({
-          success: true,
-          
-          data: jobs,
-      });
+    res.status(200).json({
+      success: true,
+
+      data: jobs,
+    });
   } catch (error) {
-      console.error("Error fetching jobs:", error);
-      res.status(500).json({
-          success: false,
-          message: "Failed to fetch jobs. Please try again later.",
-      });
-    }
+    console.error("Error fetching jobs:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch jobs. Please try again later.",
+    });
+  }
 };
 export const extractJobPosting = async (req, res) => {
   try {
@@ -210,7 +216,7 @@ const getJobPostingsFromAdzuna = async (skills) => {
 const getJobPostingsFromDatabase = async (skills) => {
   try {
     console.log("Skills type:", typeof skills);
-    const skillKeywords =typeof skills === "string"? skills.split(" ").map((skill) => skill.toLowerCase()) : Array.isArray(skills)? skills.map((skill) => skill.toLowerCase()) : [];
+    const skillKeywords = typeof skills === "string" ? skills.split(" ").map((skill) => skill.toLowerCase()) : Array.isArray(skills) ? skills.map((skill) => skill.toLowerCase()) : [];
     const jobs = await Job.find({
       skills: { $in: skillKeywords },
     });
@@ -225,7 +231,7 @@ export const deleteJob = async (req, res) => {
   try {
     const { jobId } = req.params;
 
-    
+
     if (!jobId) {
       return res.status(400).json({ success: false, message: "Job ID is required." });
     }
@@ -236,7 +242,7 @@ export const deleteJob = async (req, res) => {
       return res.status(404).json({ success: false, message: "Job not found." });
     }
 
-    
+
     if (job.created_by.toString() !== req.user.id) {
       return res.status(403).json({ success: false, message: "You are not authorized to delete this job." });
     }
@@ -256,34 +262,34 @@ export const toggleAdzunaLikedJob = async (req, res) => {
   const { userId, jobId } = req.body;  // Expecting userId and jobId in the request body
 
   if (!userId || !jobId) {
-      return res.status(400).json({ message: "User ID and Job ID are required" });
+    return res.status(400).json({ message: "User ID and Job ID are required" });
   }
 
   try {
-      // Find the user by userId
-      const user = await User.findById(userId);
+    // Find the user by userId
+    const user = await User.findById(userId);
 
-      if (!user) {
-          return res.status(404).json({ message: "User not found" });
-      }
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
-      // Check if the job is already in the AdzunaLikedJobs array
-      const jobIndex = user.AdzunaLikedJobs.indexOf(jobId);
+    // Check if the job is already in the AdzunaLikedJobs array
+    const jobIndex = user.AdzunaLikedJobs.indexOf(jobId);
 
-      if (jobIndex === -1) {
-          // If the job is not in the array, add it (like the job)
-          user.AdzunaLikedJobs.push(jobId);
-          await user.save();
-          return res.status(200).json({ message: "Job liked successfully", AdzunaLikedJobs: user.AdzunaLikedJobs });
-      } else {
-          // If the job is already liked, remove it (unlike the job)
-          user.AdzunaLikedJobs.splice(jobIndex, 1);
-          await user.save();
-          return res.status(200).json({ message: "Job unliked successfully", AdzunaLikedJobs: user.AdzunaLikedJobs });
-      }
+    if (jobIndex === -1) {
+      // If the job is not in the array, add it (like the job)
+      user.AdzunaLikedJobs.push(jobId);
+      await user.save();
+      return res.status(200).json({ message: "Job liked successfully", AdzunaLikedJobs: user.AdzunaLikedJobs });
+    } else {
+      // If the job is already liked, remove it (unlike the job)
+      user.AdzunaLikedJobs.splice(jobIndex, 1);
+      await user.save();
+      return res.status(200).json({ message: "Job unliked successfully", AdzunaLikedJobs: user.AdzunaLikedJobs });
+    }
   } catch (error) {
-      console.error(error);
-      return res.status(500).json({ message: "Internal server error" });
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -292,28 +298,28 @@ export const isLiked = async (req, res) => {
 
   // Validate input
   if (!userId || !jobId) {
-      return res.status(400).json({ message: "User ID and Job ID are required" });
+    return res.status(400).json({ message: "User ID and Job ID are required" });
   }
 
   try {
-      // Find the user by userId
-      const user = await User.findById(userId);
+    // Find the user by userId
+    const user = await User.findById(userId);
 
-      if (!user) {
-          return res.status(404).json({ message: "User not found" });
-      }
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
-      // Check if the jobId exists in the AdzunaLikedJobs array
-      const isJobLiked = user.AdzunaLikedJobs.includes(jobId);
+    // Check if the jobId exists in the AdzunaLikedJobs array
+    const isJobLiked = user.AdzunaLikedJobs.includes(jobId);
 
-      // Respond with the like status
-      return res.status(200).json({ 
-          message: isJobLiked ? "Job is liked" : "Job is not liked", 
-          isLiked: isJobLiked 
-      });
+    // Respond with the like status
+    return res.status(200).json({
+      message: isJobLiked ? "Job is liked" : "Job is not liked",
+      isLiked: isJobLiked
+    });
   } catch (error) {
-      console.error(error);
-      return res.status(500).json({ message: "Internal server error" });
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -322,26 +328,26 @@ export const getAdzunaLikedJobs = async (req, res) => {
 
   // Validate input
   if (!userId) {
-      return res.status(400).json({ message: "User ID is required" });
+    return res.status(400).json({ message: "User ID is required" });
   }
 
   try {
-      // Find the user by userId
-      const user = await User.findById(userId);
+    // Find the user by userId
+    const user = await User.findById(userId);
 
-      if (!user) {
-          return res.status(404).json({ message: "User not found" });
-      }
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
-      // Retrieve all liked jobs from AdzunaLikedJobs
-      const likedJobs = user.AdzunaLikedJobs;
+    // Retrieve all liked jobs from AdzunaLikedJobs
+    const likedJobs = user.AdzunaLikedJobs;
 
-      return res.status(200).json({ 
-          message: "Liked jobs retrieved successfully", 
-          likedJobs 
-      });
+    return res.status(200).json({
+      message: "Liked jobs retrieved successfully",
+      likedJobs
+    });
   } catch (error) {
-      console.error(error);
-      return res.status(500).json({ message: "Internal server error" });
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };

@@ -21,6 +21,6 @@ router.route("/get-resume-text").post(verifyJWT, getResumetext);
 router.route("/toggle-like-adzuna").post(verifyJWT, toggleAdzunaLikedJob);
 router.route("/is-adzuna-liked").post(verifyJWT, isLiked);
 router.route("/get-adzuna-liked").post(verifyJWT, getAdzunaLikedJobs);
-router.route("/get-all-jobs").get(verifyJWT, getAllJobs);
+router.route("/get-all-jobs").post(verifyJWT, getAllJobs);
 router.route("/:jobId").delete(verifyJWT, deleteJob);
 export default router;

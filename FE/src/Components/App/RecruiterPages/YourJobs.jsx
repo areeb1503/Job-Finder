@@ -17,12 +17,12 @@ const YourJobs = () => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const { auth } = useAuth();
-  const { accessToken } = auth;
+  const { user, accessToken } = auth;
 
   const fetchJobs = async () => {
     setLoading(true);
     try {
-      const response = await axios.get("/api/v1/jobs/get-all-jobs", {
+      const response = await axios.post("/api/v1/jobs/get-all-jobs", { user }, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },

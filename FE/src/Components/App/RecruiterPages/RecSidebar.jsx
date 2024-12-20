@@ -80,7 +80,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     };
 
     return (
-        <div className="fixed lg:static">
+        <div >
             {/* Sidebar Toggle Button */}
             <button
                 className="fixed top-4 left-4 z-50 text-orange-700 text-2xl md:hidden"

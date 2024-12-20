@@ -15,12 +15,6 @@ function About() {
         style={props}
         className="relative overflow-hidden text-black rounded-lg sm:mx-16 mx-2 sm:py-16 flex flex-col-reverse lg:flex-col items-start justify-center"
       >
-        <img
-          src="https://tailus.io/sources/blocks/left-image/preview/images/startup.png"
-          alt="Kaam platform"
-          className="w-full lg:w-1/2 lg:mx-auto lg:mb-8 lg:mt-0 sm:order-1 mb-8 sm:mr-8 lg:mr-0" // Responsive image placement
-        />
-
         <div className="relative z-10 max-w-screen-xl px-4 pb-20 pt-10 sm:py-24 mx-auto sm:px-6 lg:px-8 text-left lg:text-center"> 
           <h2 className="text-3xl font-bold mb-4">
             Welcome to <strong>Kaam</strong>, your all-in-one destination for seamless job searching and recruitment!

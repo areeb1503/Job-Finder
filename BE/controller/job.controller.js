@@ -99,10 +99,8 @@ export const getResumetext = async (req, res) => {
     const statusCode = error.statusCode || 500;
     const message = error.message || "Error in resume text controller";
     return res.status(statusCode).json({ success: false, statusCode, message });
-
   }
-
-}
+};
 export const getAllJobs = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -110,11 +108,11 @@ export const getAllJobs = async (req, res) => {
     const jobs = await Job.find({
       $or: [
         { created_by: userId }, // Jobs created by the user
-        { likes: userId }       // Jobs liked by the user
-      ]
+        { likes: userId }, // Jobs liked by the user
+      ],
     })
       .populate("created_by", "fullname email") // Populate creator's details
-      .populate("likes", "fullname email");    // Populate user details who liked the job
+      .populate("likes", "fullname email"); // Populate user details who liked the job
 
     res.status(200).json({
       success: true,
@@ -173,7 +171,6 @@ export const extractJobPosting = async (req, res) => {
   }
 };
 
-
 const extractSkills = async (resumeText) => {
   try {
     const geminiApiKey = process.env.GEMINI_API_KEY;
@@ -216,7 +213,12 @@ const getJobPostingsFromAdzuna = async (skills) => {
 const getJobPostingsFromDatabase = async (skills) => {
   try {
     console.log("Skills type:", typeof skills);
-    const skillKeywords = typeof skills === "string" ? skills.split(" ").map((skill) => skill.toLowerCase()) : Array.isArray(skills) ? skills.map((skill) => skill.toLowerCase()) : [];
+    const skillKeywords =
+      typeof skills === "string"
+        ? skills.split(" ").map((skill) => skill.toLowerCase())
+        : Array.isArray(skills)
+        ? skills.map((skill) => skill.toLowerCase())
+        : [];
     const jobs = await Job.find({
       skills: { $in: skillKeywords },
     });
@@ -231,20 +233,27 @@ export const deleteJob = async (req, res) => {
   try {
     const { jobId } = req.params;
 
-
     if (!jobId) {
-      return res.status(400).json({ success: false, message: "Job ID is required." });
+      return res
+        .status(400)
+        .json({ success: false, message: "Job ID is required." });
     }
 
     const job = await Job.findById(jobId);
 
     if (!job) {
-      return res.status(404).json({ success: false, message: "Job not found." });
+      return res
+        .status(404)
+        .json({ success: false, message: "Job not found." });
     }
 
-
     if (job.created_by.toString() !== req.user.id) {
-      return res.status(403).json({ success: false, message: "You are not authorized to delete this job." });
+      return res
+        .status(403)
+        .json({
+          success: false,
+          message: "You are not authorized to delete this job.",
+        });
     }
 
     await job.deleteOne();
@@ -259,7 +268,7 @@ export const deleteJob = async (req, res) => {
   }
 };
 export const toggleAdzunaLikedJob = async (req, res) => {
-  const { userId, jobId } = req.body;  // Expecting userId and jobId in the request body
+  const { userId, jobId } = req.body; // Expecting userId and jobId in the request body
 
   if (!userId || !jobId) {
     return res.status(400).json({ message: "User ID and Job ID are required" });
@@ -280,12 +289,22 @@ export const toggleAdzunaLikedJob = async (req, res) => {
       // If the job is not in the array, add it (like the job)
       user.AdzunaLikedJobs.push(jobId);
       await user.save();
-      return res.status(200).json({ message: "Job liked successfully", AdzunaLikedJobs: user.AdzunaLikedJobs });
+      return res
+        .status(200)
+        .json({
+          message: "Job liked successfully",
+          AdzunaLikedJobs: user.AdzunaLikedJobs,
+        });
     } else {
       // If the job is already liked, remove it (unlike the job)
       user.AdzunaLikedJobs.splice(jobIndex, 1);
       await user.save();
-      return res.status(200).json({ message: "Job unliked successfully", AdzunaLikedJobs: user.AdzunaLikedJobs });
+      return res
+        .status(200)
+        .json({
+          message: "Job unliked successfully",
+          AdzunaLikedJobs: user.AdzunaLikedJobs,
+        });
     }
   } catch (error) {
     console.error(error);
@@ -315,7 +334,7 @@ export const isLiked = async (req, res) => {
     // Respond with the like status
     return res.status(200).json({
       message: isJobLiked ? "Job is liked" : "Job is not liked",
-      isLiked: isJobLiked
+      isLiked: isJobLiked,
     });
   } catch (error) {
     console.error(error);
@@ -344,7 +363,7 @@ export const getAdzunaLikedJobs = async (req, res) => {
 
     return res.status(200).json({
       message: "Liked jobs retrieved successfully",
-      likedJobs
+      likedJobs,
     });
   } catch (error) {
     console.error(error);

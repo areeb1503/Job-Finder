@@ -199,7 +199,7 @@ function Recommend() {
             <div className="flex flex-col gap-4">
               <p className="truncate">
                 <EnvironmentOutlined style={{ color: '#C05621' }} />
-                <Text strong>Location:</Text> {job.location.display_name}
+                <Text strong>Location:</Text> {job.location.display_name || job.location}
               </p>
               <p>
                 <ClockCircleOutlined style={{ color: '#C05621' }} />
@@ -220,7 +220,7 @@ function Recommend() {
               </p>
               <p>
                 <Text strong>Posted:</Text>{' '}
-                {formatDistanceToNow(new Date(job.created), { addSuffix: true })}
+                {/* {formatDistanceToNow(new Date(job.created), { addSuffix: true })} */}
               </p>
               <a href={job.redirect_url} target="_blank" rel="noopener noreferrer">
                 <Button

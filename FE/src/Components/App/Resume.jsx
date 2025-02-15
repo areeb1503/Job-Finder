@@ -87,7 +87,7 @@ function Resume() {
   };
 
   return (
-    <div className="container mx-auto p-8 bg-white rounded-lg shadow-xl max-w-4xl w-full">
+    <div className="container mx-auto p-4 sm:p-6 md:p-8 bg-white rounded-lg shadow-xl max-w-full sm:max-w-lg md:max-w-3xl lg:max-w-4xl">
       {error ? (
         <p className="text-red-500 text-center text-lg font-semibold">{`Error: ${error}`}</p>
       ) : text ? (

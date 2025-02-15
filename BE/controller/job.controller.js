@@ -20,6 +20,17 @@ export const postJob = async (req, res) => {
     if (existingJob) {
       throw new ApiError(400, "Job already exists");
     }
+    const formattedSkills = Array.isArray(skillKeywords)
+      ? skillKeywords.map((skill) => skill.toLowerCase().trim()) // Already an array, process normally
+      : typeof skillKeywords === "string"
+      ? skillKeywords.split(",").map((skill) => skill.toLowerCase().trim()) // Convert comma-separated string to array
+      : [];
+
+    if (formattedSkills.length === 0) {
+      return res
+        .status(400)
+        .json({ message: "skillKeywords must be a non-empty array." });
+    }
     const job = await Job.create({
       title,
       location,
@@ -27,7 +38,7 @@ export const postJob = async (req, res) => {
       description,
       job_link,
       created_by: userId,
-      skillKeywords,
+      skillKeywords: formattedSkills,
     });
     await job.save();
     return res
@@ -177,10 +188,10 @@ const extractSkills = async (resumeText) => {
     const genAI = new GoogleGenerativeAI(geminiApiKey);
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-    const prompt = `Generate one line string separated by spaces of job-related skills from the following resume: ${resumeText};`;
+    const prompt = `Generate one line string separated by comma of job-related skills from the following resume: ${resumeText};`;
     const result = await model.generateContent(prompt);
     const skills = result.response.text();
-    return skills;
+    return skills.split(" ").map((skill) => skill.toLowerCase().trim());
   } catch (error) {
     console.error("Error extracting skills:", error);
     throw new Error("Skill extraction failed");
@@ -190,8 +201,7 @@ const getJobPostingsFromAdzuna = async (skills) => {
   try {
     const adzunaAppId = process.env.ADZUNA_APP_ID;
     const adzunaAppKey = process.env.ADZUNA_APP_KEY;
-    const encodedSkills = skills;
-
+    const encodedSkills = Array.isArray(skills) ? skills.join(",") : skills;
     const response = await axios.get(
       `http://api.adzuna.com/v1/api/jobs/in/search/1`,
       {
@@ -213,17 +223,31 @@ const getJobPostingsFromAdzuna = async (skills) => {
 const getJobPostingsFromDatabase = async (skills) => {
   try {
     console.log("Skills type:", typeof skills);
-    const skillKeywords =
-      typeof skills === "string"
-        ? skills.split(" ").map((skill) => skill.toLowerCase())
-        : Array.isArray(skills)
-        ? skills.map((skill) => skill.toLowerCase())
-        : [];
-    const jobs = await Job.find({
-      skills: { $in: skillKeywords },
-    });
 
-    return jobs;
+    // Normalize skills into an array of keywords
+    const skillKeywords = Array.isArray(skills)
+      ? skills.map((skill) => skill.toLowerCase().trim())
+      : typeof skills === "string"
+      ? skills.split(",").map((skill) => skill.toLowerCase().trim())
+      : [];
+
+    console.log("Skill keywords for search:", skillKeywords);
+
+    // Return empty array if no skills are provided
+    if (skillKeywords.length === 0) {
+      console.warn("No valid skills provided for searching jobs.");
+      return [];
+    }
+
+    // Fetch jobs from the local database
+    const job = await Job.find({
+      skillKeywords: { $in: skillKeywords },
+    });
+    console.log(job);
+    // const isSkillPresent = job.skillKeywords.includes(skillKeywords);
+
+    // console.log("Local Jobs:", isSkillPresent);
+    return job;
   } catch (error) {
     console.error("Error fetching job postings from database:", error);
     throw new Error("Failed to retrieve job postings from database");
@@ -248,12 +272,10 @@ export const deleteJob = async (req, res) => {
     }
 
     if (job.created_by.toString() !== req.user.id) {
-      return res
-        .status(403)
-        .json({
-          success: false,
-          message: "You are not authorized to delete this job.",
-        });
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to delete this job.",
+      });
     }
 
     await job.deleteOne();
@@ -289,22 +311,18 @@ export const toggleAdzunaLikedJob = async (req, res) => {
       // If the job is not in the array, add it (like the job)
       user.AdzunaLikedJobs.push(jobId);
       await user.save();
-      return res
-        .status(200)
-        .json({
-          message: "Job liked successfully",
-          AdzunaLikedJobs: user.AdzunaLikedJobs,
-        });
+      return res.status(200).json({
+        message: "Job liked successfully",
+        AdzunaLikedJobs: user.AdzunaLikedJobs,
+      });
     } else {
       // If the job is already liked, remove it (unlike the job)
       user.AdzunaLikedJobs.splice(jobIndex, 1);
       await user.save();
-      return res
-        .status(200)
-        .json({
-          message: "Job unliked successfully",
-          AdzunaLikedJobs: user.AdzunaLikedJobs,
-        });
+      return res.status(200).json({
+        message: "Job unliked successfully",
+        AdzunaLikedJobs: user.AdzunaLikedJobs,
+      });
     }
   } catch (error) {
     console.error(error);

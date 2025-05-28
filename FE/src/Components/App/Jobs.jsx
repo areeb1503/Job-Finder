@@ -172,13 +172,21 @@ const ChatBot = () => {
 
 
 function Jobs() {
+  const [showChatBot, setShowChatBot] = useState(false);
+  const[showToggle,setShowToggle]=useState(false);
+
+  const toggleChatBot = () => setShowChatBot(!showChatBot);
+  const toggleToggle = () =>setShowToggle(!showToggle)
+
   return (
     <FetchedJobsProvider>
       <SelectedJobsProvider>
-        <div className="grid grid-rows-[auto_1fr] grid-cols-1 md:grid-cols-3 h-screen gap-2 p-0 overflow-hidden">
+        <div className="grid grid-rows-[auto_1fr] grid-cols-1 md:grid-cols-3 h-screen gap-2 p-0 overflow-hidden relative">
+          
           {/* Content Div - Display on the Left */}
           <div className="col-span-1 md:col-span-2 md:row-span-2 row-span-9 bg-white p-4 rounded-lg shadow-lg overflow-y-auto h-full flex flex-col">
-            {/* Fixed Navigation Div */}
+            
+            {/* Fixed Navigation */}
             <nav className="bg-white shadow-lg p-4 mt-0 rounded-lg mx-2 flex-shrink-0">
               <ul className="flex gap-5 md:gap-10 flex-wrap">
                 <li>
@@ -203,34 +211,38 @@ function Jobs() {
                     Liked
                   </NavLink>
                 </li>
-                {/* <li>
-              <NavLink
-                to="/app/applied"
-                className={({ isActive }) =>
-                  `flex items-center px-4 py-2 rounded-lg ${isActive ? 'text-orange-700' : 'text-gray-700'} hover:text-orange-700 hover:bg-gray-100 duration-200`
-                }
-              >
-                <CheckCircleOutlined className="mr-2" />
-                Applied
-              </NavLink>
-            </li> */}
               </ul>
             </nav>
 
-            {/* Scrollable Outlet Component */}
+            {/* Outlet */}
             <div className="flex-grow overflow-y-auto p-4">
               <Outlet />
             </div>
           </div>
-          <ChatBot />
+
+          {/* Chatbot Sidebar */}
+          <aside className={`
+  fixed md:static top-0 right-0 h-full w-full md:w-auto md:col-span-1 bg-white shadow-lg z-40
+  transform transition-transform duration-300 ease-in-out
+  ${showChatBot ? 'translate-x-0' : 'translate-x-full'} 
+  md:translate-x-0 md:transform-none
+`}>
+  <ChatBot onClose={() => setShowChatBot(false)} />
+</aside>
+
+
+          {/* Floating Toggle Button (Mobile Only) */}
+          <button
+            onClick={toggleChatBot}
+           
+            className="md:hidden fixed bottom-20 right-4 bg-orange-700 text-white p-3 rounded-full shadow-lg z-50"
+          >
+            
+            <RobotOutlined className="text-xl" />
+          </button>
         </div>
       </SelectedJobsProvider>
     </FetchedJobsProvider>
   );
-
-
 }
-
-
 export default Jobs
-

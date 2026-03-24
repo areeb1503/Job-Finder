@@ -42,7 +42,7 @@ const ChatBot = () => {
     }
   }, [messages]);
 
-  const gemini_api_key = 'AIzaSyC4BkXsPlqOgIwY5RRJXBlgWmG4imHI4EQ'; // TODO : process.env.GEMINI_API_KEY 
+  const gemini_api_key = import.meta.env.VITE_GEMINI_API_KEY; // TODO : process.env.GEMINI_API_KEY 
 
   const handleSendMessage = async () => {
     if (!input.trim()) return;

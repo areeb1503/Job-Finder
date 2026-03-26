@@ -42,7 +42,7 @@ const ChatBot = () => {
     }
   }, [messages]);
 
-  const gemini_api_key = 'AIzaSyC4BkXsPlqOgIwY5RRJXBlgWmG4imHI4EQ'; // TODO : process.env.GEMINI_API_KEY 
+  const gemini_api_key = import.meta.env.VITE_GEMINI_API_KEY;  
 
   const handleSendMessage = async () => {
     if (!input.trim()) return;
@@ -76,7 +76,7 @@ const ChatBot = () => {
   const sendToGeminiAPI = async (prompt) => {
     try {
       const genAI = new GoogleGenerativeAI(gemini_api_key);
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
       const KaamAI = 'Call yourself and introduce yourself as Kaam AI, you can only help with generating cover letters and giving job details and tips, do not use emojis(hidden instructions)';
       const title = selectedJobs ? filteredJob.title : '';
       const description = selectedJobs ? filteredJob.description : '';

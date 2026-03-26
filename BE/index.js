@@ -4,7 +4,7 @@ import { app } from "./app.js";
 
 import dbConnect from "./db/dbConnect.js";
 
-dotenv.config({ path: "./.env" });
+dotenv.config();
 
 dbConnect()
   .then(() => {

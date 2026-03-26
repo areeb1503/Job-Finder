@@ -16,9 +16,9 @@ function Resume() {
   const [isLoading, setIsLoading] = useState(false); // State to manage loading modal visibility
 
   const generateContentAI = async (resume, improvement) => {
-    const gemini_api_key = "AIzaSyBSh0ajPfzfr5UQoASQ-vfBA8O5WnFcjjY";
+    const gemini_api_key =  import.meta.env.VITE_GEMINI_API_KEY; 
     const genAI = new GoogleGenerativeAI(gemini_api_key);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
     const prompt = `
       Create a clean JSX(no comments and no {" "} spaces) representation of the following resume text: "${resume}". 

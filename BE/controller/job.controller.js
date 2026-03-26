@@ -186,7 +186,7 @@ const extractSkills = async (resumeText) => {
   try {
     const geminiApiKey = process.env.GEMINI_API_KEY;
     const genAI = new GoogleGenerativeAI(geminiApiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
     const prompt = `Generate one line string separated by comma of job-related skills from the following resume: ${resumeText};`;
     const result = await model.generateContent(prompt);

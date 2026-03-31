@@ -79,7 +79,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     try {
       await axios.post(
         "/api/v1/users/logout",
-        { user },
+        {  },
         {
           withCredentials: true,
         }

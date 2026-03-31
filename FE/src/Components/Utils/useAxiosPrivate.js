@@ -3,47 +3,65 @@ import { useEffect } from 'react';
 import useRefreshToken from './useRefreshToken';
 import { useAuth } from '../../Contexts/AuthContext';
 
+
+
 const useAxiosPrivate = () => {
-    const refresh = useRefreshToken();
-    const { auth } = useAuth();
+  const refresh = useRefreshToken();
+  const { auth } = useAuth();
 
-    useEffect(() => {
-        const requestIntercept = axiosPrivate.interceptors.request.use(
-            config => {
-                if (!config.headers['Authorization']) {
-                    config.headers['Authorization'] = `Bearer ${auth?.accessToken}`;
-                }
-                return config; // Ensure the config is returned
-            },
-            error => Promise.reject(error)
-        );
+  useEffect(() => {
+    // ✅ REQUEST INTERCEPTOR
+    const requestIntercept = axiosPrivate.interceptors.request.use(
+      (config) => {
+        // 🔥 ALWAYS attach latest token
+        if (auth?.accessToken) {
+          config.headers["Authorization"] = `Bearer ${auth.accessToken}`;
+        }
+        return config;
+      },
+      (error) => Promise.reject(error)
+    );
 
-        const responseIntercept = axiosPrivate.interceptors.response.use(
-            response => response, // Pass through successful responses
-            async error => {
-                const prevRequest = error?.config;
-                if (error?.response?.status === 403 && !prevRequest?.sent) {
-                    prevRequest.sent = true; // Mark the request as sent
-                    try {
-                        const newAccessToken = await refresh();
-                        prevRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
-                        return axiosPrivate(prevRequest); // Retry the failed request
-                    } catch (refreshError) {
-                        console.error('Token refresh failed:', refreshError);
-                        return Promise.reject(refreshError); // Reject if token refresh fails
-                    }
-                }
-                return Promise.reject(error);
-            }
-        );
+    // ✅ RESPONSE INTERCEPTOR
+    const responseIntercept = axiosPrivate.interceptors.response.use(
+      (response) => response,
+      async (error) => {
+        const prevRequest = error?.config;
 
-        return () => {
-            axiosPrivate.interceptors.request.eject(requestIntercept);
-            axiosPrivate.interceptors.response.eject(responseIntercept);
-        };
-    }, [auth, refresh]);
+        // 🔥 FIX: use 401 instead of 403
+        if (error?.response?.status === 401 && !prevRequest?._retry) {
+          prevRequest._retry = true;
 
-    return axiosPrivate;
+          try {
+            const newAccessToken = await refresh();
+
+            // ✅ attach new token
+            prevRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
+
+            // ✅ retry original request
+            return axiosPrivate(prevRequest);
+          } catch (refreshError) {
+            console.error("Token refresh failed:", refreshError);
+
+            // 🔥 Optional: force logout
+            window.location.href = "/login";
+
+            return Promise.reject(refreshError);
+          }
+        }
+
+        return Promise.reject(error);
+      }
+    );
+
+    // ✅ CLEANUP
+    return () => {
+      axiosPrivate.interceptors.request.eject(requestIntercept);
+      axiosPrivate.interceptors.response.eject(responseIntercept);
+    };
+  }, [auth, refresh]);
+
+  return axiosPrivate;
 };
 
 export default useAxiosPrivate;

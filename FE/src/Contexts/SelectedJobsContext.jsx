@@ -1,5 +1,4 @@
-import { useContext, useState } from "react";
-import { createContext } from "react";
+import { useContext, useState, createContext } from "react";
 import PropTypes from 'prop-types';
 
 
@@ -17,10 +16,9 @@ export const SelectedJobsProvider = ({children}) =>{
   )
 }
 
-SelectedJobsProvider.PropTypes = {
-  children : PropTypes.node.isRequired
-}
-
+SelectedJobsProvider.propTypes = {
+  children: PropTypes.node.isRequired
+};
 export const useSelectedJobs = () => {
   return useContext(SelectedJobsContext);
 }

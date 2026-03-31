@@ -21,7 +21,6 @@ const generateAccessAndRefreshToken = async (userId) => {
 };
 const register = async (req, res) => {
   try {
-    console.log("Registering user...");
     const { fullname, email, phoneNumber, password, role, company } = req.body;
 
     // Check for missing fields
@@ -34,21 +33,18 @@ const register = async (req, res) => {
       $or: [{ email }, { phoneNumber }],
     });
     if (existingUser) {
-      console.log(`User already exists: ${email} or ${phoneNumber}`);
       throw new ApiError(400, "User already exists");
     }
 
     // Handle file uploads
     let resumeUpload = null;
     if (role === "student" && req.files?.resume?.[0]) {
-      console.log("Uploading resume...");
       const resumeFile = req.files.resume[0].path;
       resumeUpload = await uploadOnCloudinary(resumeFile);
     }
 
     let profilePhotoUpload = null;
     if (req.files?.profilePhoto?.[0]) {
-      console.log("Uploading profile photo...");
       const profilePhotoFile = req.files.profilePhoto[0].path;
       profilePhotoUpload = await uploadOnCloudinary(profilePhotoFile);
     }
@@ -65,7 +61,6 @@ const register = async (req, res) => {
       profilePhoto: profilePhotoUpload?.url || "",
       company: role === "recruiter" ? company : null,
     });
-    console.log("User created:", user);
 
     // Generate tokens
     const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
@@ -114,22 +109,21 @@ const login = async (req, res) => {
       throw new ApiError(401, "Invalid credentials");
     }
 
-    // if (role != user.role) {
-    //   throw new ApiError(403, "Unauthorized Access");
-    // } // No need for this since role field is not there in the login form.
+    
 
     const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
       user._id
     );
 
     const loggedInUser = await User.findById(user._id).select(
-      "-password -refreshToken"
+      "-password "
     );
 
     const options = {
       httpOnly: true,
       secure: true,
       maxAge: 24 * 60 * 60 * 1000,
+      sameSite: "Lax",
     };
     return res
       .status(200)
@@ -170,6 +164,7 @@ const logout = async (req, res) => {
   const options = {
     httpOnly: true,
     secure: true,
+    sameSite: "Lax",
   };
   return res
     .status(200)
@@ -202,10 +197,10 @@ const refreshAccessToken = async (req, res) => {
     const options = {
       httpOnly: true,
       secure: true,
+      sameSite: "Lax",
     };
     return res
       .status(200)
-      .cookie("accessToken", accessToken, options)
       .cookie("refreshToken", newRefreshToken, options)
       .json(
         new ApiResponse(
@@ -213,7 +208,6 @@ const refreshAccessToken = async (req, res) => {
           {
             user: user,
             accessToken: accessToken,
-            // refreshToken: newRefreshToken,
           },
           "Access Token refreshed successfully"
         )
@@ -223,14 +217,32 @@ const refreshAccessToken = async (req, res) => {
   }
 };
 const getCurrentUser = async (req, res) => {
-  return res
-    .status(200)
-    .json(new ApiResponse(200, req.user, "User fetched successfully"));
+  try {
+    // req.user comes from verifyJWT middleware
+    const user = await User.findById(req.user.id).select("-password");
+    
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: user,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch user",
+    });
+  }
 };
 const updateUserProfile = async (req, res) => {
   try {
     const { fullname, email, phoneNumber } = req.body;
-    console.log(fullname, email, phoneNumber);
 
     let { profilePhoto } = req.body;
     if (!fullname || !email || !phoneNumber) {
@@ -296,6 +308,7 @@ const updatePassword = async (req, res) => {
     );
   }
 };
+
 export {
   register,
   login,

@@ -63,15 +63,11 @@ function App() {
         {/* Unauthorized */}
         <Route path="/unauthorized" element={<Unauthorized />} />
 
-      </Routes>;
+      </Routes>
     </>
   );
 }
 
 export default App;
 
-/*
-localStorage.setItem("User", JSON.stringify(token))
-if !user ? LandingPage : App
-*/
 

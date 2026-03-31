@@ -2,18 +2,22 @@ import React from 'react';
 import { useLocation, Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../../Contexts/AuthContext.jsx';
 
-function RequireAuth({ allowedRole }) {
-    const { auth } = useAuth();
-    const location = useLocation();
 
-    console.log("Auth state in RequireAuth:", auth); // Log auth state
-    console.log("Allowed role:", allowedRole); // Log allowed role
+const RequireAuth = ({ allowedRole }) => {
+  const { auth, loading } = useAuth();
 
-    return (
-        auth?.user?.role === allowedRole
-            ? <Outlet />
-            : <Navigate to="/unauthorized" state={{ from: location }} replace />
-    );
-}
+  // ✅ Wait until auth is restored
+  if (loading) return <p>Loading...</p>;
+
+  if (!auth?.accessToken) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (allowedRole && auth.user?.role !== allowedRole) {
+    return <Navigate to="/unauthorized" replace />;
+  }
+
+  return <Outlet />;
+};
 
 export default RequireAuth;

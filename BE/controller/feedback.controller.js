@@ -6,7 +6,6 @@ export const addFeedback = async (req, res) => {
   try {
     const { feedbackText, rating } = req.body;
     const userId = req.user._id;
-    console.log(userId);
     
     if (!feedbackText || !rating) {
       throw new ApiError(400, "All fields are required.");

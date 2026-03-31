@@ -5,6 +5,8 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import parse from "html-react-parser";
 import { Modal } from "antd";
 import { CloseOutlined } from "@ant-design/icons";
+import Groq from "groq-sdk";
+
 
 function Resume() {
   const { auth } = useAuth();
@@ -15,26 +17,45 @@ function Resume() {
   const [isModalOpen, setIsModalOpen] = useState(false); // State to manage modal visibility
   const [isLoading, setIsLoading] = useState(false); // State to manage loading modal visibility
 
-  const generateContentAI = async (resume, improvement) => {
-    const gemini_api_key =  import.meta.env.VITE_GEMINI_API_KEY; 
-    const genAI = new GoogleGenerativeAI(gemini_api_key);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
+const groq = new Groq({
+  apiKey: import.meta.env.VITE_GROQ_API_KEY,dangerouslyAllowBrowser: true
+});
+
+const generateContentAI = async (resume, improvement) => {
+  try {
     const prompt = `
-      Create a clean JSX(no comments and no {" "} spaces) representation of the following resume text: "${resume}". 
-      - Do not include any imports, function definitions, or extra code, or any explanation.
-      - Only generate JSX content.
-      - Divide into sections: Contact Information, Skills, Experience, Education. Format it just like an actual Resume.
-      - Use orange-700, gray, and white for text and use Tailwind CSS for styling.
-      - Make links open in new tabs and style links with underline and text-orange-700.
-      - If improvements are provided, embed them as inline <span> elements styled with "text-green-700 font-semibold".
-      ${improvement ? `Here are the improvements: "${improvement}"` : ""}
-    `;
+Create a clean JSX (no comments and no {" "} spaces) representation of the following resume text: "${resume}". 
 
-    const result = await model.generateContent(prompt);
-    const text = result.response.text();
-    return text;
-  };
+Rules:
+- Do not include any imports, function definitions, or extra code, or any explanation.
+- Only generate JSX content.
+- Divide into sections: Contact Information, Skills, Experience, Education.
+- Format like a professional resume.
+- Use Tailwind CSS with orange-700, gray, and white.
+- Links must open in new tabs and be styled with underline and text-orange-700.
+- If improvements are provided, embed them as inline <span class="text-green-700 font-semibold">...</span>.
+
+${improvement ? `Improvements: "${improvement}"` : ""}
+`;
+
+    const completion = await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+      temperature: 0.7, 
+    });
+
+    return completion.choices[0]?.message?.content;
+  } catch (error) {
+    console.error("Groq Error:", error);
+    throw new Error("AI generation failed");
+  }
+};
 
   useEffect(() => {
     const fetchResumeText = async () => {
@@ -56,7 +77,6 @@ function Resume() {
         if (!resumeText) {
           throw new Error("Resume text is empty.");
         }
-        console.log(resumeText);
 
         const generatedText = await generateContentAI(resumeText, "");
         const cleanText = generatedText.replace(/^```(?:jsx)?\n/, "").replace(/```[\n\s]*$/, "");
@@ -70,21 +90,28 @@ function Resume() {
     fetchResumeText();
   }, [accessToken, user]);
 
-  const handleSuggestImprovements = async () => {
-    try {
-      setIsModalOpen(false); // Close the modal
-      setIsLoading(true); // Show the loading modal
-      const generatedText = await generateContentAI(text, suggestion);
-      const cleanText = generatedText.replace(/^```(?:jsx)?\n/, "").replace(/```[\n\s]*$/, "");
-      setText(cleanText); // Update the resume text with suggested improvements
-      setSuggestion(""); // Reset the suggestion input
-    } catch (err) {
-      console.error("Error generating suggestions:", err);
-      setError("Failed to generate suggestions. Please try again.");
-    } finally {
-      setIsLoading(false); // Hide the loading modal
-    }
-  };
+const handleSuggestImprovements = async () => {
+  try {
+    setIsModalOpen(false);
+    setIsLoading(true);
+
+    const generatedText = await generateContentAI(text, suggestion);
+
+    // Clean Groq output (handles ```jsx, ```html, etc.)
+    const cleanText = generatedText
+      ?.replace(/```(?:jsx|html)?\n?/g, "")
+      ?.replace(/```/g, "")
+      ?.trim();
+
+    setText(cleanText);
+    setSuggestion("");
+  } catch (err) {
+    console.error("Error generating suggestions:", err);
+    setError(err.message || "Failed to generate suggestions. Please try again.");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <div className="container mx-auto p-4 sm:p-6 md:p-8 bg-white rounded-lg shadow-xl max-w-full sm:max-w-lg md:max-w-3xl lg:max-w-4xl">

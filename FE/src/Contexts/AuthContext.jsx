@@ -1,53 +1,63 @@
-import { useContext, useState } from "react";
+import { useContext, useState,useEffect } from "react";
 import { createContext } from "react";
 import PropTypes from 'prop-types';
+import axios from "../api/axios";
 
 const AuthContext = createContext();
 
+
 export const AuthProvider = ({ children }) => {
-  const [auth, setAuth] = useState(() => {
-    // ✅ Rehydrate from localStorage on every page load/refresh
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) return {};
+  const [auth, setAuth] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-      // Decode JWT payload
-      const payload = JSON.parse(atob(token.split(".")[1]));
+  // Restore user on refresh
+  useEffect(() => {
+    const verifyUser = async () => {
+      try {
+        const token = localStorage.getItem("token");
 
-      // ✅ Reject expired tokens
-      if (payload.exp && payload.exp * 1000 < Date.now()) {
+        if (!token) {
+          setLoading(false);
+          return;
+        }
+
+        const res = await axios.get("/api/v1/users/current-user", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        setAuth({
+          user: res.data.data,
+          accessToken: token,
+        });
+      } catch (err) {
+        console.error("Auth restore failed", err);
         localStorage.removeItem("token");
-        return {};
+        setAuth(null);
+      } finally {
+        setLoading(false);
       }
+    };
 
-      return { token, ...payload };
-    } catch {
-      localStorage.removeItem("token");
-      return {};
-    }
-  });
+    verifyUser();
+  }, []);
 
-  // ✅ Wrap setAuth to also persist token to localStorage
-  const setAuthAndPersist = (authData) => {
-    if (authData?.token) {
-      localStorage.setItem("token", authData.token);
+  const setAuthAndPersist = (data) => {
+    if (data?.accessToken) {
+      localStorage.setItem("token", data.accessToken);
     } else {
-      localStorage.removeItem("token"); // logout case
+      localStorage.removeItem("token");
     }
-    setAuth(authData);
+    setAuth(data);
   };
 
   return (
-    <AuthContext.Provider value={{ auth, setAuth: setAuthAndPersist }}>
+    <AuthContext.Provider value={{ auth, setAuth: setAuthAndPersist, loading }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-AuthProvider.propTypes = {
-  children: PropTypes.node.isRequired
-};
 
-export const useAuth = () => {
-  return useContext(AuthContext);
-};
+export const useAuth = () => useContext(AuthContext);

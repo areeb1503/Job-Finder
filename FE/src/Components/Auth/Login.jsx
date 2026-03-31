@@ -38,55 +38,50 @@ const Login = () => {
     setLoading(false);
   }, [formData.email, formData.password]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+ const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    try {
-      const { email, password } = formData;
-      const response = await axios.post(
-        LOGIN_URL,
-        JSON.stringify({ email, password }),
-        {
-          headers: { 'Content-Type': 'application/json' },
-          withCredentials: true,
-        }
-      );
-      const resObject = response.data;
-      console.log(resObject);
-      if (!resObject) {
-        setLoading(true);
-      }
-      const accessToken = resObject.data?.accessToken;
-      const refreshToken = resObject.data?.refreshToken;
-      const user = resObject.data?.user;
-      console.log('accessToken:', accessToken);
-      console.log('refreshToken:', refreshToken);
-      setAuth({ user, accessToken, refreshToken });
-      setSuccess(true);
-      setFormData({
-        email: '',
-        password: '',
-      });
-      navigate('/app/');
+  try {
+    const { email, password } = formData;
 
-      if (user.role === 'recruiter') {
-        navigate('/recruiter/');
+    const response = await axios.post(
+      LOGIN_URL,
+      JSON.stringify({ email, password }),
+      {
+        headers: { "Content-Type": "application/json" },
+        withCredentials: true,
       }
-    } catch (error) {
-      if (!error.response) {
-        setErrMsg('No Server Response');
-      } else if (error.response.data.statusCode === 400) {
-        setErrMsg('Missing Username or Password');
-      } else if (error.response.data.statusCode === 401) {
-        setErrMsg('Invalid credentials');
-      } else if (error.response.data.statusCode === 404) {
-        setErrMsg('User does not exist');
-      } else {
-        setErrMsg('Login Failed');
-      }
-      errRef.current.focus();
+    );
+
+    const user = response.data.data.user;
+    const accessToken = response.data.data.accessToken;
+
+    setAuth({ user, accessToken });
+
+    setSuccess(true);
+    setFormData({ email: "", password: "" });
+
+    if (user.role === "recruiter") {
+      navigate("/recruiter/");
+    } else {
+      navigate("/app/");
     }
-  };
+
+  } catch (error) {
+    if (!error.response) {
+      setErrMsg("No Server Response");
+    } else if (error.response.data.statusCode === 400) {
+      setErrMsg("Missing Username or Password");
+    } else if (error.response.data.statusCode === 401) {
+      setErrMsg("Invalid credentials");
+    } else if (error.response.data.statusCode === 404) {
+      setErrMsg("User does not exist");
+    } else {
+      setErrMsg("Login Failed");
+    }
+    errRef.current.focus();
+  }
+};
 
   const handleChange = (e) => {
     const { name, value } = e.target;

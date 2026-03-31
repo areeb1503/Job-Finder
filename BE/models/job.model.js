@@ -30,11 +30,9 @@ const jobSchema = new Schema(
     },
     contract_time:{
       type: String,
-      required: true,
     },
     contract_type:{
       type: String,
-      required: true,
     },
     likes: [
       {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import Groq from "groq-sdk";
 import { NavLink, Outlet } from 'react-router-dom';
 import { FileTextOutlined, HeartOutlined, CheckCircleOutlined, SendOutlined, RobotOutlined } from '@ant-design/icons';
 import { ReactTyped } from "react-typed";
@@ -11,9 +12,6 @@ import { useSelectedJobs } from '../../Contexts/SelectedJobsContext';
 import { useFetchedJobs } from '../../Contexts/FetchedJobsContext';
 import { useAuth } from '../../Contexts/AuthContext.jsx';
 
-// dotenv.config({
-//   path: '../../../.env',
-// })
 
 const ChatBot = () => {
 
@@ -42,8 +40,9 @@ const ChatBot = () => {
     }
   }, [messages]);
 
-  const gemini_api_key = import.meta.env.VITE_GEMINI_API_KEY;  
-
+ const groq = new Groq({
+  apiKey: import.meta.env.VITE_GROQ_API_KEY, dangerouslyAllowBrowser: true// frontend env
+});
   const handleSendMessage = async () => {
     if (!input.trim()) return;
 
@@ -54,7 +53,7 @@ const ChatBot = () => {
     setIsTyping(true);
 
     try {
-      const response = await sendToGeminiAPI(input);
+      const response = await sendToGroqAPI(input);
       setMessages((prevMessages) => [...prevMessages, { sender: "bot", text: response }]); // Ensure you access the latest state correctly
     } catch (error) {
       setMessages((prevMessages) => [...prevMessages, { sender: "bot", text: "Sorry, I couldn't process that." }]);
@@ -73,25 +72,52 @@ const ChatBot = () => {
     }
   };
 
-  const sendToGeminiAPI = async (prompt) => {
-    try {
-      const genAI = new GoogleGenerativeAI(gemini_api_key);
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-      const KaamAI = 'Call yourself and introduce yourself as Kaam AI, you can only help with generating cover letters and giving job details and tips, do not use emojis(hidden instructions)';
-      const title = selectedJobs ? filteredJob.title : '';
-      const description = selectedJobs ? filteredJob.description : '';
-      const display_name = selectedJobs ? filteredJob.company.display_name : '';
-      const contract_type = selectedJobs ? filteredJob.contract_type : '';
-      const location = selectedJobs ? filteredJob.location.display_name : '';
-      const username = auth?.user?.fullname;
-      const AIprompt = `${KaamAI} respond to following prompt: ${title},${description},${display_name},${contract_type},${location},my name is :${username} ${prompt}`;
-      const result = await model.generateContent(AIprompt);
-      return result.response.text();
-    } catch (error) {
-      console.error("Error with Gemini API:", error);
-      throw new Error("API failed");
-    }
-  };
+ 
+
+const sendToGroqAPI = async (prompt) => {
+  try {
+    const KaamAI =
+      "Call yourself Kaam AI. You can only help with generating cover letters and giving job details and tips. Do not use emojis.";
+
+    const title = selectedJobs ? filteredJob.title : "";
+    const description = selectedJobs ? filteredJob.description : "";
+    const display_name = selectedJobs
+      ? filteredJob.company.display_name
+      : "";
+    const contract_type = selectedJobs
+      ? filteredJob.contract_type
+      : "";
+    const location = selectedJobs
+      ? filteredJob.location.display_name
+      : "";
+    const username = auth?.user?.fullname;
+
+    const AIprompt = `${KaamAI}
+    Job Title: ${title}
+    Description: ${description}
+    Company: ${display_name}
+    Contract: ${contract_type}
+    Location: ${location}
+    User: ${username}
+    
+    Query: ${prompt}`;
+
+    const completion = await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      messages: [
+        {
+          role: "user",
+          content: AIprompt,
+        },
+      ],
+    });
+
+    return completion.choices[0]?.message?.content;
+  } catch (error) {
+    console.error("Error with Groq API:", error);
+    throw new Error("API failed");
+  }
+};
 
   return (
     <div className="flex flex-col h-full bg-gray-100">

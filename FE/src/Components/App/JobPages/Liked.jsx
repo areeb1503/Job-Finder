@@ -18,98 +18,108 @@ import { useAuth } from '../../../Contexts/AuthContext';
 const { Title, Text } = Typography;
 
 function Liked() {
-  const { jobs } = useFetchedJobs();
-  const [likedJobs, setLikedJobs] = useState([]);
-  const { selectedJobs, setSelectedJobs } = useSelectedJobs();
-  const [expandedDescriptions, setExpandedDescriptions] = useState({});
+  const { jobs } = useFetchedJobs(); // adzuna jobs
   const { auth } = useAuth();
-  const { user, accessToken } = auth;
-  const userId = user?._id;
+  const { accessToken } = auth;
+  const { selectedJobs, setSelectedJobs } = useSelectedJobs();
 
-  // Initialize liked jobs from the server
+  const [localLikedIds, setLocalLikedIds]   = useState([]);
+  const [adzunaLikedIds, setAdzunaLikedIds] = useState([]);
+  const [expandedDescriptions, setExpandedDescriptions] = useState({});
+
+  const axiosConfig = {
+    headers: { Authorization: `Bearer ${accessToken}` },
+    withCredentials: true,
+  };
+
+  // ✅ Single fetch for all liked jobs
   useEffect(() => {
-    const fetchLikedJobs = async () => {
+    const fetchAllLikedJobs = async () => {
       try {
-        const response = await axios.post(
-          '/api/v1/jobs/get-adzuna-liked',
-          { userId },
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${accessToken}`,
-            },
-            withCredentials: true,
-          }
-        );
-        console.log('Fetched liked jobs:', response.data.likedJobs);
-        setLikedJobs(response.data.likedJobs || []); // Default to an empty array
+        const response = await axios.get('/api/v1/jobs/liked-jobs', axiosConfig);
+        setLocalLikedIds(response.data.localLikedJobs || []);
+        setAdzunaLikedIds(response.data.adzunaLikedJobs || []);
       } catch (error) {
         console.error('Error fetching liked jobs:', error);
       }
     };
-    fetchLikedJobs();
-  }, [userId, accessToken]);
+    fetchAllLikedJobs();
+  }, [accessToken]);
 
-  // Filter liked jobs from all jobs
-  const likedJobsData = jobs.filter((job) => likedJobs.includes(job.id));
 
-  const toggleLike = async (jobId) => {
+// ✅ Split by type using the tag
+const likedAdzunaJobs = jobs
+  .filter((job) => job._type === "adzuna" && adzunaLikedIds.includes(job.id))
+  .map((job) => ({
+    _type: "adzuna",
+    id: job.id,
+    title: job.title,
+    companyName: job.company?.display_name || "N/A",
+    location: job.location?.display_name || "N/A",
+    contractType: job.contract_type || "N/A",
+    contractTime: job.contract_time || "N/A",
+    description: job.description || "",
+    created: job.created,
+    redirectUrl: job.redirect_url,
+  }));
+
+const likedLocalJobs = jobs
+  .filter((job) => job._type === "local" && localLikedIds.map(String).includes(String(job._id)))
+  .map((job) => ({
+    _type: "local",
+    id: String(job._id),
+    title: job.title,
+    companyName: job.company?.name || job.companyName || "N/A",
+    location: job.location || "N/A",
+    contractType: job.contractType || "N/A",
+    contractTime: job.contractTime || "N/A",
+    description: job.description || "",
+    created: job.createdAt,
+    redirectUrl: "#",
+  }));
+
+const allLikedJobs = [...likedLocalJobs, ...likedAdzunaJobs];
+
+  // ✅ Single toggle handler
+  const toggleLike = async (jobId, isLocal) => {
+    const endpoint = isLocal ? '/api/v1/jobs/like-local' : '/api/v1/jobs/like-adzuna';
+    const setIds   = isLocal ? setLocalLikedIds : setAdzunaLikedIds;
+    const prevIds  = isLocal ? localLikedIds : adzunaLikedIds;
+
+    // Optimistic update
+    setIds(prevIds.includes(jobId)
+      ? prevIds.filter((id) => id !== jobId)
+      : [...prevIds, jobId]
+    );
+
     try {
-      // Optimistically update the state before making an API call
-      setLikedJobs((prevLikedJobs) =>
-        prevLikedJobs.includes(jobId)
-          ? prevLikedJobs.filter((id) => id !== jobId)
-          : [...prevLikedJobs, jobId]
-      );
-
-      // Make API call to toggle like/unlike
-      const response = await axios.post(
-        '/api/v1/jobs/toggle-like-adzuna',
-        { userId, jobId },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${accessToken}`,
-          },
-          withCredentials: true,
-        }
-      );
-
-      // Update state based on server response to ensure consistency
-      console.log(response.data.AdzunaLikedJobs);
-      setLikedJobs(response.data.AdzunaLikedJobs || []);
+      const response = await axios.post(endpoint, { jobId }, axiosConfig);
+      setIds(response.data.likedJobs || []);
     } catch (error) {
       console.error('Error toggling like:', error);
-
-      // Revert the optimistic update if the API call fails
-      setLikedJobs((prevLikedJobs) =>
-        prevLikedJobs.includes(jobId)
-          ? [...prevLikedJobs, jobId]
-          : prevLikedJobs.filter((id) => id !== jobId)
-      );
+      setIds(prevIds); // revert
     }
   };
 
-  const toggleSelect = (jobId) => {
-    setSelectedJobs((prev) => (prev === jobId ? null : jobId));
-  };
+  const toggleSelect  = (jobId) => setSelectedJobs((prev) => (prev === jobId ? null : jobId));
+  const toggleDescription = (jobId) =>
+    setExpandedDescriptions((prev) => ({ ...prev, [jobId]: !prev[jobId] }));
 
-  const toggleDescription = (jobId) => {
-    setExpandedDescriptions((prev) => ({
-      ...prev,
-      [jobId]: !prev[jobId],
-    }));
-  };
+  const isJobLiked = (job) =>
+    job._type === 'local'
+      ? localLikedIds.map(String).includes(job.id)
+      : adzunaLikedIds.includes(job.id);
 
   return (
     <div className="flex flex-col items-center justify-start gap-6 p-4 w-full h-full overflow-auto">
       <h1 className="text-2xl text-gray-700">Your Liked Jobs</h1>
-      {likedJobsData.length === 0 ? (
+
+      {allLikedJobs.length === 0 ? (
         <div className="flex items-center justify-center h-full">
           <p className="text-orange-700 p-5">You haven't liked any jobs yet.</p>
         </div>
       ) : (
-        likedJobsData.map((job) => (
+        allLikedJobs.map((job) => (
           <Card
             key={job.id}
             title={
@@ -118,11 +128,15 @@ function Liked() {
                   <Title level={4} style={{ marginBottom: 0, color: '#333' }}>
                     {job.title}
                   </Title>
-                  <Text type="secondary">{job.company.display_name}</Text>
+                  <Text type="secondary">{job.companyName}</Text>
                 </div>
                 <div className="flex gap-4">
-                  <span onClick={() => toggleLike(job.id)} className="cursor-pointer">
-                    {likedJobs.includes(job.id) ? (
+                  {/* ✅ Pass isLocal flag based on job type */}
+                  <span
+                    onClick={() => toggleLike(job.id, job._type === 'local')}
+                    className="cursor-pointer"
+                  >
+                    {isJobLiked(job) ? (
                       <HeartFilled style={{ color: '#C05621', fontSize: '1.5rem' }} />
                     ) : (
                       <HeartOutlined style={{ color: '#C05621', fontSize: '1.5rem' }} />
@@ -157,14 +171,14 @@ function Liked() {
             <div className="flex flex-col gap-4">
               <p className="truncate">
                 <EnvironmentOutlined style={{ color: '#C05621' }} />
-                <Text strong>Location:</Text> {job.location.display_name}
+                <Text strong> Location:</Text> {job.location}
               </p>
               <p>
                 <ClockCircleOutlined style={{ color: '#C05621' }} />
-                <Text strong>Contract Type:</Text> {job.contract_type}
+                <Text strong> Contract Type:</Text> {job.contractType}
               </p>
               <p>
-                <Text strong>Contract Time:</Text> {job.contract_time}
+                <Text strong>Contract Time:</Text> {job.contractTime}
               </p>
               <p
                 onClick={() => toggleDescription(job.id)}
@@ -178,9 +192,11 @@ function Liked() {
               </p>
               <p>
                 <Text strong>Posted:</Text>{' '}
-                {formatDistanceToNow(new Date(job.created), { addSuffix: true })}
+                {job.created
+                  ? formatDistanceToNow(new Date(job.created), { addSuffix: true })
+                  : 'N/A'}
               </p>
-              <a href={job.redirect_url} target="_blank" rel="noopener noreferrer">
+              <a href={job.redirectUrl} target="_blank" rel="noopener noreferrer">
                 <Button
                   type="primary"
                   block

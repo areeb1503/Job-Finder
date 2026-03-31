@@ -18,22 +18,30 @@ import { useAuth } from '../../../Contexts/AuthContext';
 const { Title, Text } = Typography;
 
 function Recommend() {
-  const { jobs, setJobs } = useFetchedJobs();
+  const { jobs } = useFetchedJobs(); // already tagged with _type
   const [searchTerm, setSearchTerm] = useState('');
-  const [likedJobs, setLikedJobs] = useState([]);
+  const [localLikedIds, setLocalLikedIds] = useState([]);
+  const [adzunaLikedIds, setAdzunaLikedIds] = useState([]);
   const { selectedJobs, setSelectedJobs } = useSelectedJobs();
   const [filteredJobs, setFilteredJobs] = useState([]);
   const [expandedDescriptions, setExpandedDescriptions] = useState({});
   const { auth } = useAuth();
-  const { user, accessToken } = auth;
-  const userId = user?._id;
+  const { accessToken } = auth; // ✅ removed userId — backend uses req.user._id from JWT
 
+  const axiosConfig = {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
+    withCredentials: true,
+  };
+
+  // Sync filteredJobs when jobs load
   useEffect(() => {
-    if (jobs) {
-      setFilteredJobs(jobs);
-    }
+    if (jobs) setFilteredJobs(jobs);
   }, [jobs]);
 
+  // Filter by search term
   useEffect(() => {
     const filtered = jobs.filter((job) =>
       job.title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -41,91 +49,77 @@ function Recommend() {
     setFilteredJobs(filtered);
   }, [searchTerm, jobs]);
 
-  // Function to toggle like/unlike a job
-  const toggleLike = async (jobId) => {
-    try {
-      // Optimistically update the state before making an API call
-      setLikedJobs((prevLikedJobs) =>
-        prevLikedJobs.includes(jobId)
-          ? prevLikedJobs.filter((id) => id !== jobId)
-          : [...prevLikedJobs, jobId]
-      );
-
-      // Make API call to toggle like/unlike
-      const response = await axios.post(
-        '/api/v1/jobs/toggle-like-adzuna',
-        { userId, jobId },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${accessToken}`,
-          },
-          withCredentials: true,
-        }
-      );
-
-      // Update state based on server response to ensure consistency
-      console.log(response.data.AdzunaLikedJobs )
-      setLikedJobs(response.data.AdzunaLikedJobs || []);
-    } catch (error) {
-      console.error('Error toggling like:', error);
-
-      // Revert the optimistic update if the API call fails
-      setLikedJobs((prevLikedJobs) =>
-        prevLikedJobs.includes(jobId)
-          ? [...prevLikedJobs, jobId]
-          : prevLikedJobs.filter((id) => id !== jobId)
-      );
-    }
-  };
-
-
-
-  // Function to check if a job is liked
-  // const isJobLiked = async (jobId) => {
-  //   try {
-  //     const response = await axios.post('/api/v1/jobs/is-adzuna-liked', { jobId });
-  //     return response.data.isLiked;
-  //   } catch (error) {
-  //     console.error('Error checking if job is liked:', error);
-  //     return false;
-  //   }
-  // };
-
-  // Initialize liked jobs from the server
+  // ✅ Single fetch for both liked job types
   useEffect(() => {
     const fetchLikedJobs = async () => {
       try {
-        const response = await axios.post(
-          '/api/v1/jobs/get-adzuna-liked',
-          { userId },
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${accessToken}`,
-            },
-            withCredentials: true,
-          }
-        );
-        console.log('Fetched liked jobs:', response.data.likedJobs);
-        setLikedJobs(response.data.likedJobs || []); // Default to an empty array
+        const response = await axios.get('/api/v1/jobs/liked-jobs', axiosConfig);
+        setLocalLikedIds(response.data.localLikedJobs || []);
+        setAdzunaLikedIds(response.data.adzunaLikedJobs || []);
       } catch (error) {
         console.error('Error fetching liked jobs:', error);
       }
     };
     fetchLikedJobs();
-  }, [userId, accessToken]);
+  }, [accessToken]);
 
+  // ✅ Single toggle handler for both job types
+  const toggleLike = async (job) => {
+    const isLocal = job._type === 'local';
+    const jobId   = isLocal ? String(job._id) : job.id;
+    const endpoint = isLocal ? '/api/v1/jobs/like-local' : '/api/v1/jobs/like-adzuna';
+    const setIds   = isLocal ? setLocalLikedIds : setAdzunaLikedIds;
+    const prevIds  = isLocal ? localLikedIds : adzunaLikedIds;
 
-  const toggleSelect = (jobId) => {
-    setSelectedJobs((prev) => (prev === jobId ? null : jobId));
+    // Optimistic update
+    setIds(prevIds.includes(jobId)
+      ? prevIds.filter((id) => id !== jobId)
+      : [...prevIds, jobId]
+    );
+
+    try {
+      const response = await axios.post(endpoint, { jobId }, axiosConfig);
+      setIds(response.data.likedJobs || []);
+    } catch (error) {
+      console.error('Error toggling like:', error);
+      setIds(prevIds); // revert on failure
+    }
   };
 
-  const toggleDescription = (jobId) => {
-    setExpandedDescriptions((prev) => ({
-      ...prev,
-      [jobId]: !prev[jobId],
-    }));
+  const isJobLiked = (job) => {
+    if (job._type === 'local') return localLikedIds.map(String).includes(String(job._id));
+    return adzunaLikedIds.includes(job.id);
+  };
+
+  const toggleSelect = (jobId) => setSelectedJobs((prev) => (prev === jobId ? null : jobId));
+
+  const toggleDescription = (jobId) =>
+    setExpandedDescriptions((prev) => ({ ...prev, [jobId]: !prev[jobId] }));
+
+  // ✅ Resolve correct fields based on job type
+  const getJobFields = (job) => {
+    if (job._type === 'local') {
+      return {
+        id: String(job._id),
+        company: job.company?.name || job.companyName || 'N/A',
+        location: job.location || 'N/A',
+        contractType: job.contractType || 'N/A',
+        contractTime: job.contractTime || 'N/A',
+        description: job.description || '',
+        created: job.createdAt || null,
+        redirectUrl: job.redirectUrl || '#',
+      };
+    }
+    return {
+      id: job.id,
+      company: job.company?.display_name || 'N/A',
+      location: job.location?.display_name || job.location || 'N/A',
+      contractType: job.contract_type || 'N/A',
+      contractTime: job.contract_time || 'N/A',
+      description: job.description || '',
+      created: job.created || null,
+      redirectUrl: job.redirect_url || '#',
+    };
   };
 
   return (
@@ -141,6 +135,7 @@ function Recommend() {
           style={{ borderColor: '#C05621', outline: 'none' }}
         />
       </div>
+
       {filteredJobs.length === 0 ? (
         <div className="flex items-center justify-center h-full">
           <div
@@ -151,97 +146,103 @@ function Recommend() {
           <p className="text-orange-700 p-5">Loading Jobs according to your Skills...</p>
         </div>
       ) : (
-        filteredJobs.map((job) => (
-          <Card
-            key={job.id}
-            title={
-              <div className="flex justify-between items-center flex-wrap gap-2">
-                <div>
-                  <Title level={4} style={{ marginBottom: 0, color: '#333' }}>
-                    {job.title}
-                  </Title>
-                  <Text type="secondary">{job.company.display_name}</Text>
+        filteredJobs.map((job) => {
+          const fields = getJobFields(job);
+          return (
+            <Card
+              key={fields.id}
+              title={
+                <div className="flex justify-between items-center flex-wrap gap-2">
+                  <div>
+                    <Title level={4} style={{ marginBottom: 0, color: '#333' }}>
+                      {job.title}
+                    </Title>
+                    <Text type="secondary">{fields.company}</Text>
+                  </div>
+                  <div className="flex gap-4">
+                    {/* ✅ Pass full job object so toggleLike knows the type */}
+                    <span onClick={() => toggleLike(job)} className="cursor-pointer">
+                      {isJobLiked(job) ? (
+                        <HeartFilled style={{ color: '#C05621', fontSize: '1.5rem' }} />
+                      ) : (
+                        <HeartOutlined style={{ color: '#C05621', fontSize: '1.5rem' }} />
+                      )}
+                    </span>
+                    <span
+                      onClick={() => toggleSelect(fields.id)}
+                      className="flex flex-col items-center"
+                    >
+                      {selectedJobs === fields.id ? (
+                        <CheckCircleFilled style={{ color: '#C05621', fontSize: '1.5rem' }} />
+                      ) : (
+                        <CheckCircleOutlined style={{ color: '#C05621', fontSize: '1.5rem' }} />
+                      )}
+                      <p>Ask Kaam AI</p>
+                    </span>
+                  </div>
                 </div>
-                <div className="flex gap-4">
-                  <span onClick={() => toggleLike(job.id)} className="cursor-pointer">
-                    {likedJobs?.includes(job.id) ? (
-                      <HeartFilled style={{ color: '#C05621', fontSize: '1.5rem' }} />
-                    ) : (
-                      <HeartOutlined style={{ color: '#C05621', fontSize: '1.5rem' }} />
-                    )}
-                  </span>
-                  <span
-                    onClick={() => toggleSelect(job.id)}
-                    className="flex flex-col items-center"
-                  >
-                    {selectedJobs === job.id ? (
-                      <CheckCircleFilled style={{ color: '#C05621', fontSize: '1.5rem' }} />
-                    ) : (
-                      <CheckCircleOutlined style={{ color: '#C05621', fontSize: '1.5rem' }} />
-                    )}
-                    <p>Ask Kaam AI</p>
-                  </span>
-                </div>
-              </div>
-            }
-            bordered={false}
-            style={{
-              width: '100%',
-              maxWidth: '900px',
-              boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
-              borderRadius: '8px',
-              border: '1px solid #e0e0e0',
-              transition: 'border-color 0.3s ease',
-            }}
-            hoverable
-            className="hover:border-orange-700 mx-auto"
-          >
-            <div className="flex flex-col gap-4">
-              <p className="truncate">
-                <EnvironmentOutlined style={{ color: '#C05621' }} />
-                <Text strong>Location:</Text> {job.location.display_name || job.location}
-              </p>
-              <p>
-                <ClockCircleOutlined style={{ color: '#C05621' }} />
-                <Text strong>Contract Type:</Text> {job.contract_type}
-              </p>
-              <p>
-                <Text strong>Contract Time:</Text> {job.contract_time}
-              </p>
-              <p
-                onClick={() => toggleDescription(job.id)}
-                className="cursor-pointer"
-                style={{ color: '#000000' }}
-              >
-                <Text strong>Description:</Text>{' '}
-                {expandedDescriptions[job.id]
-                  ? job.description
-                  : `${job.description.slice(0, 250)}...`}
-              </p>
-              <p>
-                <Text strong>Posted:</Text>{' '}
-                {/* {formatDistanceToNow(new Date(job.created), { addSuffix: true })} */}
-              </p>
-              <a href={job.redirect_url} target="_blank" rel="noopener noreferrer">
-                <Button
-                  type="primary"
-                  block
-                  style={{ backgroundColor: '#C05621', borderColor: '#C05621' }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#7f2e13';
-                    e.currentTarget.style.borderColor = '#7f2e13';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = '#C05621';
-                    e.currentTarget.style.borderColor = '#C05621';
-                  }}
+              }
+              bordered={false}
+              style={{
+                width: '100%',
+                maxWidth: '900px',
+                boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
+                borderRadius: '8px',
+                border: '1px solid #e0e0e0',
+                transition: 'border-color 0.3s ease',
+              }}
+              hoverable
+              className="hover:border-orange-700 mx-auto"
+            >
+              <div className="flex flex-col gap-4">
+                <p className="truncate">
+                  <EnvironmentOutlined style={{ color: '#C05621' }} />
+                  <Text strong> Location:</Text> {fields.location}
+                </p>
+                <p>
+                  <ClockCircleOutlined style={{ color: '#C05621' }} />
+                  <Text strong> Contract Type:</Text> {fields.contractType}
+                </p>
+                <p>
+                  <Text strong>Contract Time:</Text> {fields.contractTime}
+                </p>
+                <p
+                  onClick={() => toggleDescription(fields.id)}
+                  className="cursor-pointer"
+                  style={{ color: '#000000' }}
                 >
-                  Get more Information
-                </Button>
-              </a>
-            </div>
-          </Card>
-        ))
+                  <Text strong>Description:</Text>{' '}
+                  {expandedDescriptions[fields.id]
+                    ? fields.description
+                    : `${fields.description.slice(0, 250)}...`}
+                </p>
+                <p>
+                  <Text strong>Posted:</Text>{' '}
+                  {fields.created
+                    ? formatDistanceToNow(new Date(fields.created), { addSuffix: true })
+                    : 'N/A'}
+                </p>
+                <a href={fields.redirectUrl} target="_blank" rel="noopener noreferrer">
+                  <Button
+                    type="primary"
+                    block
+                    style={{ backgroundColor: '#C05621', borderColor: '#C05621' }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#7f2e13';
+                      e.currentTarget.style.borderColor = '#7f2e13';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = '#C05621';
+                      e.currentTarget.style.borderColor = '#C05621';
+                    }}
+                  >
+                    Get more Information
+                  </Button>
+                </a>
+              </div>
+            </Card>
+          );
+        })
       )}
     </div>
   );

@@ -39,7 +39,6 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   const [msg, setMsg] = useState("");
 
   useEffect(() => {
-    console.log(rating)
   }, [rating]);
   
 
@@ -64,7 +63,6 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
       message.success("Feedback submitted successfully!");
       setMsg("Feedback submitted successfully!");
-      console.log(msg);
       setFeedbackText("");
       setRating(0);
     } catch (error) {
@@ -88,7 +86,6 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
       );
 
       setAuth({});
-      console.log(`Auth state after logout : ${auth}`);
       message.success("You have been logged out successfully!");
       navigate("/");
     } catch (error) {
@@ -226,7 +223,6 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                 value={rating}
                 onChange={(value) => {
                   setRating(value);
-                  console.log("Selected rating:", value);
                 }}
                 className="text-orange-700"
               />

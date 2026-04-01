@@ -123,7 +123,6 @@ const login = async (req, res) => {
       httpOnly: true,
       secure: true,
       maxAge: 24 * 60 * 60 * 1000,
-      sameSite: "Lax",
     };
     return res
       .status(200)
@@ -165,7 +164,6 @@ const logout = async (req, res) => {
   const options = {
     httpOnly: true,
     secure: true,
-    sameSite: "Lax",
   };
   return res
     .status(200)
@@ -198,7 +196,6 @@ const refreshAccessToken = async (req, res) => {
     const options = {
       httpOnly: true,
       secure: true,
-      sameSite: "Lax",
     };
     return res
       .status(200)

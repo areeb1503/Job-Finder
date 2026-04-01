@@ -160,6 +160,7 @@ const logout = async (req, res) => {
       new: true,
     }
   );
+    await req.user.save();
 
   const options = {
     httpOnly: true,

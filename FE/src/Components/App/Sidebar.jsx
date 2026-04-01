@@ -38,9 +38,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
 
-  useEffect(() => {
-  }, [rating]);
-  
+  useEffect(() => {}, [rating]);
 
   const handleSubmit = async () => {
     if (!feedbackText || rating === 0) {
@@ -58,7 +56,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             Authorization: `Bearer ${accessToken}`,
           },
           withCredentials: true,
-        }
+        },
       );
 
       message.success("Feedback submitted successfully!");
@@ -79,16 +77,17 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     try {
       await axios.post(
         "/api/v1/users/logout",
-        {  },
+        {},
         {
           withCredentials: true,
-        }
+        },
       );
 
       setAuth({});
       message.success("You have been logged out successfully!");
-    localStorage.removeItem("token");
-    navigate("/login")    } catch (error) {
+      localStorage.removeItem("token");
+      navigate("/login");
+    } catch (error) {
       console.error("Error during logout:", error);
       message.error("Failed to log out. Please try again.");
     }
@@ -123,7 +122,8 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                 <NavLink
                   to="/app/jobs"
                   className={({ isActive }) =>
-                    `flex items-center px-6 py-3 w-full ${isActive ? "text-orange-700" : "text-gray-700"
+                    `flex items-center px-6 py-3 w-full ${
+                      isActive ? "text-orange-700" : "text-gray-700"
                     } hover:bg-gray-100 hover:text-orange-700 duration-200`
                   }
                 >
@@ -135,7 +135,8 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                 <NavLink
                   to="/app/resume"
                   className={({ isActive }) =>
-                    `flex items-center px-6 py-3 w-full ${isActive ? "text-orange-700" : "text-gray-700"
+                    `flex items-center px-6 py-3 w-full ${
+                      isActive ? "text-orange-700" : "text-gray-700"
                     } hover:bg-gray-100 hover:text-orange-700 duration-200`
                   }
                 >
@@ -182,7 +183,9 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
       {/* Feedback Modal */}
       <Modal
-        title={<h2 className="text-orange-700 text-lg font-semibold">Feedback</h2>}
+        title={
+          <h2 className="text-orange-700 text-lg font-semibold">Feedback</h2>
+        }
         visible={isFeedbackOpen}
         onCancel={closeFeedbackPopup}
         footer={null}
@@ -241,7 +244,9 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
       {/* Settings Modal */}
       <Modal
-        title={<h2 className="text-orange-700 text-lg font-semibold">Settings</h2>}
+        title={
+          <h2 className="text-orange-700 text-lg font-semibold">Settings</h2>
+        }
         visible={isSettingsOpen}
         onCancel={closeSettingsPopup}
         footer={null}

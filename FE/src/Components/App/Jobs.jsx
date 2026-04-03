@@ -5,7 +5,6 @@ import { FileTextOutlined, HeartOutlined, CheckCircleOutlined, SendOutlined, Rob
 import { ReactTyped } from "react-typed";
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import ReactMarkdown from 'react-markdown';
-import dotenv from 'dotenv';
 import { SelectedJobsProvider } from '../../Contexts/SelectedJobsContext';
 import { FetchedJobsProvider } from '../../Contexts/FetchedJobsContext';
 import { useSelectedJobs } from '../../Contexts/SelectedJobsContext';

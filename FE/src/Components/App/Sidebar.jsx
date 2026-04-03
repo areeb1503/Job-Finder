@@ -17,7 +17,7 @@ import axios from "../../api/axios.js";
 import { Rate, Button, Input, message } from "antd";
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
-  const { auth, setAuthAndPersist } = useAuth();
+  const { auth, setAuth } = useAuth();
   const profile = auth?.user?.profilePhoto;
   const { user, accessToken } = auth;
   const navigate = useNavigate();

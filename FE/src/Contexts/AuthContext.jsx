@@ -14,7 +14,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const verifyUser = async () => {
       try {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem("accessToken");
 
         if (!token) {
           setLoading(false);
@@ -33,7 +33,7 @@ export const AuthProvider = ({ children }) => {
         });
       } catch (err) {
         console.error("Auth restore failed", err);
-        localStorage.removeItem("token");
+        localStorage.removeItem("accessToken");
         setAuth(null);
       } finally {
         setLoading(false);
@@ -53,7 +53,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ auth, setAuth, loading }}>
+    <AuthContext.Provider value={{ auth, setAuth: setAuthAndPersist, loading }}>
       {children}
     </AuthContext.Provider>
   );

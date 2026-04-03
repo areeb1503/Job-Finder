@@ -44,7 +44,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
       
       setAuth({});
       message.success("Logged out successfully!");
-      localStorage.removeItem("token");
+      localStorage.removeItem("accessToken");
       navigate("/login");
     } catch (error) {
       message.error("Logout failed. Please try again.");

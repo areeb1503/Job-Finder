@@ -1,7 +1,7 @@
 import { useContext, useState,useEffect } from "react";
 import { createContext } from "react";
 import PropTypes from 'prop-types';
-import axios from "../api/axios";
+import axios from "../api/axios.js";
 
 const AuthContext = createContext();
 

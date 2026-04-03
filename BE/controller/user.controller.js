@@ -146,30 +146,40 @@ const login = async (req, res) => {
   }
 };
 const logout = async (req, res) => {
-  // On client, also delete the accessToken
-  await User.findByIdAndUpdate(
-    req.user._id,
+  try {
+    // ✅ only update DB if token exists
+    const token = req.cookies?.accessToken ||
+      req.header("Authorization")?.replace("Bearer ", "").trim();
 
-    {
-      $unset: {
-        refreshToken: 1,
-      },
-    },
-    {
-      new: true,
+    if (token) {
+      try {
+        const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+        await User.findByIdAndUpdate(
+          decodedToken?.id,
+          { $unset: { refreshToken: 1 } },
+          { new: true }
+        );
+      } catch {
+        // token expired or invalid — still proceed with logout
+      }
     }
-  );
-    await req.user.save();
 
-  const options = {
-    httpOnly: true,
-    secure: true,
-  };
-  return res
-    .status(200)
-    .clearCookie("accessToken", options)
-    .clearCookie("refreshToken", options)
-    .json(new ApiResponse(200, {}, "User logged out sucessfully"));
+    const options = {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None", // ✅ required for cross-domain cookies
+    };
+
+    return res
+      .status(200)
+      .clearCookie("accessToken", options)
+      .clearCookie("refreshToken", options)
+      .json(new ApiResponse(200, {}, "User logged out successfully"));
+
+  } catch (error) {
+    console.error("Logout error:", error);
+    return res.status(500).json({ message: "Logout failed" });
+  }
 };
 const refreshAccessToken = async (req, res) => {
   const incomingRefreshtoken =
@@ -217,7 +227,7 @@ const refreshAccessToken = async (req, res) => {
 const getCurrentUser = async (req, res) => {
   try {
     // req.user comes from verifyJWT middleware
-    const user = await User.findById(req.user.id).select("-password");
+    const user = await User.findById(req.user._id).select("-password");
     
 
     if (!user) {

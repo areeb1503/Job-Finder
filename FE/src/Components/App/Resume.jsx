@@ -10,7 +10,7 @@ import Groq from "groq-sdk";
 
 function Resume() {
   const { auth } = useAuth();
-  const { user, accessToken } = auth;
+const { user, accessToken } = auth || {};
   const [text, setText] = useState("");
   const [error, setError] = useState(null);
   const [suggestion, setSuggestion] = useState(""); // State for the user's suggestion

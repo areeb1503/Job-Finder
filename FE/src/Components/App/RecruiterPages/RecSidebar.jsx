@@ -16,9 +16,10 @@ import { useAuth } from "../../../Contexts/AuthContext.jsx";
 import axios from "../../../api/axios.js";
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
-  const { auth, setAuth } = useAuth();
-  const profile = auth?.user?.profilePhoto;
-  const { user, accessToken } = auth;
+const { auth,setAuth } = useAuth();
+const { user, accessToken } = auth || {};
+ 
+const profile = auth?.user?.profilePhoto;
 
   // State for modals
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);

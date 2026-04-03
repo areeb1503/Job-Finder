@@ -20,7 +20,7 @@ const { Title, Text } = Typography;
 function Liked() {
   const { jobs } = useFetchedJobs(); // adzuna jobs
   const { auth } = useAuth();
-  const { accessToken } = auth;
+const { user, accessToken } = auth || {};
   const { selectedJobs, setSelectedJobs } = useSelectedJobs();
 
   const [localLikedIds, setLocalLikedIds]   = useState([]);

@@ -17,10 +17,11 @@ import axios from "../../api/axios.js";
 import { Rate, Button, Input, message } from "antd";
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
-  const { auth, setAuth } = useAuth();
   const profile = auth?.user?.profilePhoto;
-  const { user, accessToken } = auth;
-  const navigate = useNavigate();
+const { auth,setAuth } = useAuth();
+const { user, accessToken } = auth || {};
+
+ const navigate = useNavigate();
 
   // State for controlling popups
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);

@@ -17,7 +17,7 @@ const YourJobs = () => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const { auth } = useAuth();
-  const { user, accessToken } = auth;
+const { user, accessToken } = auth || {};
 
   const fetchJobs = async () => {
     setLoading(true);

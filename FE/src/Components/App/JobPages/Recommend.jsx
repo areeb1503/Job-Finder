@@ -26,7 +26,7 @@ function Recommend() {
   const [filteredJobs, setFilteredJobs] = useState([]);
   const [expandedDescriptions, setExpandedDescriptions] = useState({});
   const { auth } = useAuth();
-  const { accessToken } = auth; // ✅ removed userId — backend uses req.user._id from JWT
+const { user, accessToken } = auth || {};
 
   const axiosConfig = {
     headers: {

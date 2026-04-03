@@ -21,7 +21,7 @@ const UploadJobs = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const { auth } = useAuth();
-  const { user, accessToken } = auth;
+  const { user, accessToken } = auth || {};
 
   const handleSubmit = async (values) => {
     setLoading(true);

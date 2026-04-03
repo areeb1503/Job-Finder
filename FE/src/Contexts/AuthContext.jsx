@@ -45,9 +45,9 @@ export const AuthProvider = ({ children }) => {
 
   const setAuthAndPersist = (data) => {
     if (data?.accessToken) {
-      localStorage.setItem("token", data.accessToken);
+      localStorage.setItem("accessToken", data.accessToken);
     } else {
-      localStorage.removeItem("token");
+      localStorage.removeItem("accessToken");
     }
     setAuth(data);
   };

@@ -55,7 +55,7 @@ const Login = () => {
 
     const user = response.data.data.user;
     const accessToken = response.data.data.accessToken;
-     localStorage.setItem("token", token);
+     localStorage.setItem("token", accessToken);
 
     setAuth({ user, accessToken });
 
@@ -69,7 +69,7 @@ const Login = () => {
     }
 
   } catch (error) {
-    if (!error.response) {
+    if (!error.response) { 
       setErrMsg("No Server Response");
     } else if (error.response.data.statusCode === 400) {
       setErrMsg("Missing Username or Password");

@@ -22,7 +22,7 @@ export const verifyJWT = async (req, res, next) => {
     }
 
     // Find the user associated with the token
-    const user = await User.findById(decodedToken?.id).select("-password -refreshToken");
+    const user = await User.findById(decodedToken?.id || decodedToken?._id ).select("-password -refreshToken");
 
     // If no user is found, throw an error
     if (!user) {

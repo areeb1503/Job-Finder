@@ -35,9 +35,9 @@ const Login = () => {
     setErrMsg('');
   }, [formData.email, formData.password]);
 
-  useEffect(() => {
-    setLoading(false);
-  }, [formData.email, formData.password]);
+  // useEffect(() => {
+  //   setLoading(false);
+  // }, [formData.email, formData.password]);
 
  const handleSubmit = async (e) => {
   e.preventDefault();
@@ -83,6 +83,10 @@ const Login = () => {
       setErrMsg("Login Failed");
     }
     errRef.current.focus();
+    
+  }
+  finally {
+    setLoading(false);
   }
 };
 
@@ -92,7 +96,9 @@ const Login = () => {
   };
 
   return (
+    
     <div className="relative flex items-center justify-center min-h-screen bg-gray-50 px-6 sm:px-8 md:px-12">
+      {loading && <Loader />}
       {/* Left Job Search SVG */}
       <img
         src="https://www.svgrepo.com/show/290023/job-search.svg"
@@ -170,7 +176,7 @@ const Login = () => {
             disabled={loading}
             className="w-full px-5 py-2 bg-orange-700 text-white rounded-md hover:bg-white hover:text-orange-700 border border-orange-700 transition-all duration-300 ease-out focus:ring-2 focus:ring-orange-700"
           >
-            {loading ? <Loader /> : 'Log In'}
+            Log In
           </button>
         </form>
 

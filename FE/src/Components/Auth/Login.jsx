@@ -5,6 +5,7 @@ import Cookies from 'universal-cookie';
 import { useAuth } from '../../Contexts/AuthContext.jsx';
 import axios from '../../api/axios.js';
 import logo from '../../assets/briefcase.png';
+import Loader from '../Utils/Loader.jsx';
 
 const cookies = new Cookies();
 const LOGIN_URL = '/api/v1/users/login';
@@ -42,6 +43,7 @@ const Login = () => {
   e.preventDefault();
 
   try {
+    setLoading(true);
     const { email, password } = formData;
 
     const response = await axios.post(
@@ -168,7 +170,7 @@ const Login = () => {
             disabled={loading}
             className="w-full px-5 py-2 bg-orange-700 text-white rounded-md hover:bg-white hover:text-orange-700 border border-orange-700 transition-all duration-300 ease-out focus:ring-2 focus:ring-orange-700"
           >
-            {loading ? 'Logging In...' : 'Log In'}
+            {loading ? <Loader /> : 'Log In'}
           </button>
         </form>
 

@@ -21,11 +21,14 @@ const generateAccessAndRefreshToken = async (userId) => {
 };
 const register = async (req, res) => {
   try {
-    const { fullname, email, phoneNumber, password, role, company } = req.body;
+    const { fullname, email, phoneNumber, password, role, company} = req.body;
 
     // Check for missing fields
     if (!fullname || !email || !phoneNumber || !password || !role) {
       throw new ApiError(400, "Please fill in all fields");
+    }
+    if(role === "student" && !req.files?.resume?.[0]){
+      throw new ApiError(400, "Resume is required");
     }
 
     // Check if user exists
@@ -57,7 +60,7 @@ const register = async (req, res) => {
       phoneNumber,
       password: hashedPassword,
       role,
-      resume: resumeUpload?.url || "",
+      resume:role === "student" ? resumeUpload?.url : null,
       profilePhoto: profilePhotoUpload?.url || "",
       company: role === "recruiter" ? company : null,
     });

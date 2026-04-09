@@ -88,12 +88,17 @@ const SignUp = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (formData.role === "student" && !formData.resume) {
+      setErrMsg("Please upload your resume to continue");
+      return;
+    }
 
     // Validate password before proceeding
     if (!PWD_REGEX.test(formData.password)) {
       setErrMsg("Invalid Credentials");
       return;
     }
+    
 
     try {
       setLoading(true);
@@ -462,8 +467,9 @@ const SignUp = () => {
 
 export default SignUp;
 
-{
+
   /*
+  
     
     */
-}
+
